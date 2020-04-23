@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Firebase Example</string>
+    <string name="add_record">Add a Record</string>
+    <string name="view_records">View All Records</string>
+    <string name="update_record">Update By ID</string>
+    <string name="delete_record">Delete By ID</string>
+</resources>
