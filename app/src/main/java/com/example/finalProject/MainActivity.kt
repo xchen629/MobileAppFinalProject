@@ -41,6 +41,13 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun launchSecondActivity(view: View) {
+        // Launch the second activity
+        val intent = Intent(this, taskActivity::class.java)
+        Log.d(TAG, "Launching the second activity")
+        startActivity(intent)
+    }
+
     // An helper function to start our RegisterActivity
     private fun startRegisterActivity(){
         val intent = Intent(this, RegisterActivity::class.java)
