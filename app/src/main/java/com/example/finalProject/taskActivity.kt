@@ -38,7 +38,7 @@ class taskActivity : AppCompatActivity() {
         val randomTaskAPI = retrofit.create(RandomTaskService::class.java)
 
         // Using enqueue method allows to make asynchronous call without blocking/freezing main thread
-        randomTaskAPI.getTaskType("recreational").enqueue(object : Callback<Task>{
+        randomTaskAPI.getTask().enqueue(object : Callback<Task>{
             override fun onFailure(call: Call<Task>, t: Throwable) {
                 Log.d(TAG, "onFailure : $t")
             }
@@ -52,9 +52,7 @@ class taskActivity : AppCompatActivity() {
                     Log.w(TAG, "Valid response was not received")
                     return
                 }
-
-                //Log.d(TAG, ": ${body.results.get(0).activity}")
-
+                
                 // Update the adapter with the new data
                 taskList.add(body)
                 adapter.notifyDataSetChanged()

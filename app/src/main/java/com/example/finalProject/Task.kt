@@ -8,10 +8,11 @@ data class TaskData(
 */
 data class Task(
     val activity: String,
-    val accessibility: Double,
+    val accessibility:String,
     val type: String,
-    val participants: Int,
-    val price: Double,
+    val participants: String,
+    val price: String,
+    val link:String,
     val key: Int
 )
 
