@@ -1,4 +1,4 @@
-package com.example.firebaseexample
+package com.example.finalProject
 
 data class Contact (
     var id: Int? = null,
