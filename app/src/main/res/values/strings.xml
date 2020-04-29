@@ -4,4 +4,5 @@
     <string name="view_records">View All Records</string>
     <string name="update_record">Update By ID</string>
     <string name="delete_record">Delete By ID</string>
+    <string name="random_task">Random Task</string>
 </resources>

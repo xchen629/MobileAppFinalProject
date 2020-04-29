@@ -10,4 +10,6 @@ interface RandomTaskService {
     @GET(".")
     fun getTask() : Call<Task>
 
+    @GET(".")
+    fun getTaskOfType(@Query("type") type: String) : Call<Task>
 }
