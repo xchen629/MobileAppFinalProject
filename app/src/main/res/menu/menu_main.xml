@@ -11,23 +11,3 @@
         app:showAsAction="ifRoom" />
 
 </menu>
-
-
-
-
-<!--An alternative way to show item icon on ActionBar menu-->
-<!--
-<item
-android:title="logout_menu"
-app:showAsAction="always"
-android:icon="@drawable/ic_more">
-
-<menu>
-    <item
-        android:id="@+id/action_logout"
-        android:icon="@drawable/ic_exit_to_app_black_24dp"
-        android:orderInCategory="100"
-        android:title="Logout"
-        app:showAsAction="never" />
-</menu>
-</item>-->
