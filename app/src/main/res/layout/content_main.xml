@@ -194,11 +194,21 @@
         android:id="@+id/button2"
         android:layout_width="82dp"
         android:layout_height="42dp"
-        android:layout_marginBottom="52dp"
+        android:layout_marginBottom="32dp"
         android:onClick="launchSecondActivity"
         android:text="Button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/testButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="GoToSound"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/realtime_update_button" />
 </androidx.constraintlayout.widget.ConstraintLayout>
