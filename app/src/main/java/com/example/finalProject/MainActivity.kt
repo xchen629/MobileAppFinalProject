@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +28,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+        val button = findViewById<Button>(R.id.testButton)
+        button.setOnClickListener{
+            val intent = Intent(this, ButtonAndPhoto::class.java)
+            startActivity(intent)
+        }
+
 
 
         // Get a Cloud Firestore instance
