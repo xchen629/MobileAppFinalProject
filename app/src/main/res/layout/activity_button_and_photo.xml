@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,24 +9,27 @@
     tools:context=".ButtonAndPhoto">
 
     <!--ImageView in which image will be set-->
+    <!--Button that opens the camera app-->
+
     <ImageView
         android:id="@+id/image_view"
-        android:layout_width="400dp"
-        android:layout_height="400dp"
+        android:layout_width="303dp"
+        android:layout_height="265dp"
+        android:layout_marginTop="56dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_image_black_24dp" />
-    <!--Button that opens the camera app-->
-    <Button
-        android:id="@+id/capture_btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Take Picture" />
+        android:src="@drawable/ic_image_black_24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/soundButton"
-        android:layout_width="247dp"
-        android:layout_height="60dp"
-        android:onClick="playSound"
-        android:text="Play Sound" />
+    <Spinner
+        android:id="@+id/photo_select_spinner"
+        android:layout_width="214dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="96dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_view" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
