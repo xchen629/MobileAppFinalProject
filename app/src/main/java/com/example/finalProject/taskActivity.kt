@@ -41,60 +41,59 @@ class taskActivity  : AppCompatActivity() {
         fireBaseDb = FirebaseFirestore.getInstance()
     }
 
-    fun addRandTask(view:View){
-        task_recycler_view.adapter = adapter
-        task_recycler_view.layoutManager = LinearLayoutManager(this)
 
-        // Using enqueue method allows to make asynchronous call without blocking/freezing main thread
-        randomTaskAPI.getTask().enqueue(object : Callback<Task>{
-            override fun onFailure(call: Call<Task>, t: Throwable) {
-                Log.d(TAG, "onFailure : $t")
-            }
-
-            override fun onResponse(call: Call<Task>, response: Response<Task>) {
-                Log.d(TAG, "onResponse: $response")
-                Log.d(TAG, "onResponse: ${response.body()?.activity}")
-                val body = response.body()
-
-                if (body == null){
-                    Log.w(TAG, "Valid response was not received")
-                    return
-                }
-
-                // Update the adapter with the new data
-                taskList.add(0,body)
-                adapter.notifyDataSetChanged()
-            }
-        })
-    }
-
-    fun addTypeTask(view:View){
+    fun addTask(view:View){
         task_recycler_view.adapter = adapter
         task_recycler_view.layoutManager = LinearLayoutManager(this)
         val category = categorySpinner.selectedItem.toString().toLowerCase()
 
-        // Using enqueue method allows to make asynchronous call without blocking/freezing main thread
-        randomTaskAPI.getTaskOfType(category).enqueue(object : Callback<Task>{
-            override fun onFailure(call: Call<Task>, t: Throwable) {
-                Log.d(TAG, "onFailure : $t")
-            }
-
-            override fun onResponse(call: Call<Task>, response: Response<Task>) {
-                Log.d(TAG, "onResponse: $response")
-                Log.d(TAG, "onResponse: ${response.body()?.activity}")
-                val body = response.body()
-
-                if (body == null){
-                    Log.w(TAG, "Valid response was not received")
-                    return
+        if(category == "random"){
+            randomTaskAPI.getTask().enqueue(object : Callback<Task>{
+                override fun onFailure(call: Call<Task>, t: Throwable) {
+                    Log.d(TAG, "onFailure : $t")
                 }
 
-                // Update the adapter with the new data
-                taskList.add(0,body)
-                addDataCustomClass(body)
-                adapter.notifyDataSetChanged()
-            }
-        })
+                override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                    Log.d(TAG, "onResponse: $response")
+                    Log.d(TAG, "onResponse: ${response.body()?.activity}")
+                    val body = response.body()
+
+                    if (body == null){
+                        Log.w(TAG, "Valid response was not received")
+                        return
+                    }
+
+                    // Update the adapter with the new data
+                    taskList.add(0,body)
+                    addTaskToDatabase(body)
+                    adapter.notifyDataSetChanged()
+                }
+            })
+        }
+        else{
+            // Using enqueue method allows to make asynchronous call without blocking/freezing main thread
+            randomTaskAPI.getTaskOfType(category).enqueue(object : Callback<Task>{
+                override fun onFailure(call: Call<Task>, t: Throwable) {
+                    Log.d(TAG, "onFailure : $t")
+                }
+
+                override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                    Log.d(TAG, "onResponse: $response")
+                    Log.d(TAG, "onResponse: ${response.body()?.activity}")
+                    val body = response.body()
+
+                    if (body == null){
+                        Log.w(TAG, "Valid response was not received")
+                        return
+                    }
+
+                    // Update the adapter with the new data
+                    taskList.add(0,body)
+                    addTaskToDatabase(body)
+                    adapter.notifyDataSetChanged()
+                }
+            })
+        }
     }
 
     fun launchCompletedTaskActivity(view: View) {
@@ -105,7 +104,7 @@ class taskActivity  : AppCompatActivity() {
     }
 
     // Add  a record to db
-    fun addDataCustomClass(task: Task) {
+    fun addTaskToDatabase(task: Task) {
         // Get an instance of our collection
         val savedTasks = fireBaseDb.collection("Tasks")
 

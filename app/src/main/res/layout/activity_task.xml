@@ -9,27 +9,14 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/task_recycler_view"
-        android:layout_width="413dp"
-        android:layout_height="538dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/randTaskBtn"
-        tools:listitem="@layout/row_item" />
-
-    <Button
-        android:id="@+id/randTaskBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:onClick="addRandTask"
-        android:text="@string/random_task"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="393dp"
+        android:layout_height="503dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.065" />
+        app:layout_constraintTop_toBottomOf="@+id/typeTaskBtn"
+        tools:listitem="@layout/row_item" />
 
     <TextView
         android:id="@+id/taskTitle"
@@ -39,25 +26,19 @@
         android:text="These are your current tasks, hold down on an item to delete or complete a task!"
         android:textAlignment="center"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/randTaskBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.695" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/typeTaskBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="5dp"
-        android:onClick="addTypeTask"
+        android:layout_marginStart="64dp"
+        android:onClick="addTask"
         android:text="Get task:"
-        app:layout_constraintBottom_toTopOf="@+id/task_recycler_view"
-        app:layout_constraintStart_toEndOf="@+id/randTaskBtn"
-        app:layout_constraintTop_toBottomOf="@+id/taskTitle"
-        app:layout_constraintVertical_bias="0.888" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/taskTitle" />
 
     <Spinner
         android:id="@+id/categorySpinner"
