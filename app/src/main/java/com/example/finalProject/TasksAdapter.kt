@@ -83,13 +83,15 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
 
             // Set the button actions, all of them are optional
             builder.setPositiveButton("DELETE") { dialog, which ->
+                deleteTask(tasks[selectedItem].key)
+                Log.d("adapter",selectedItem.toString())
                 tasks.removeAt(selectedItem)
                 notifyItemRemoved(selectedItem)
                 Toast.makeText(
                     itemView.context, "Deleting Task: $selectedItemValue",
                     Toast.LENGTH_SHORT
                 ).show()
-                deleteTask(tasks[selectedItem].key)
+
             }
 
             builder.setNegativeButton("SAVE") { dialog, which ->
@@ -108,7 +110,7 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
     }
 
     fun deleteTask(key: Int) {
-
+        Log.d("adapter", key.toString())
         // To delete the contact based on key, we first execute a query to get a reference to
         // document to be deleted, then loop over matching documents and finally delete each
         // document based on its reference
@@ -122,6 +124,8 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
                         Log.d("adapter", "${document.id} => ${document.data}")
                         // delete the document
                         document.reference.delete()
+                        // Assuming there is only one document we want to delete so break the loop
+                        break
                     } else {
                         Log.d("adapter", "No such document")
                     }
