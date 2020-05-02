@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import io.opencensus.metrics.LongGauge
 import kotlinx.android.synthetic.main.row_item.view.*
@@ -18,6 +19,7 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
 
     //var count = 0
     private val TAG = "UsersAdapter"
+    private var fireBaseDb: FirebaseFirestore = FirebaseFirestore.getInstance()
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         // Inflate a layout from our XML (row_item.XML) and return the holder
@@ -87,6 +89,7 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
                     itemView.context, "Deleting Task: $selectedItemValue",
                     Toast.LENGTH_SHORT
                 ).show()
+                deleteTask(tasks[selectedItem].key)
             }
 
             builder.setNegativeButton("SAVE") { dialog, which ->
@@ -102,5 +105,27 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
             dialog.show()
         }
 
+    }
+
+    fun deleteTask(key: Int) {
+
+        // To delete the contact based on key, we first execute a query to get a reference to
+        // document to be deleted, then loop over matching documents and finally delete each
+        // document based on its reference
+        fireBaseDb.collection("Tasks")
+            .whereEqualTo("key", key)
+            .get()
+            .addOnSuccessListener { documents ->
+
+                for (document in documents) {
+                    if (document != null) {
+                        Log.d("adapter", "${document.id} => ${document.data}")
+                        // delete the document
+                        document.reference.delete()
+                    } else {
+                        Log.d("adapter", "No such document")
+                    }
+                }
+            }
     }
 }

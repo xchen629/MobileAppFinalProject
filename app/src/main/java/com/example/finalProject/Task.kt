@@ -13,7 +13,9 @@ data class Task(
     val participants: String,
     val price: String,
     val link:String,
-    val key: Int
+    val key: Int,
+    val image: String? = null,
+    val uid: String? = null
 )
 
 
