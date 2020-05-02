@@ -1,21 +1,28 @@
 package com.example.finalProject
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_task.*
+import kotlinx.android.synthetic.main.content_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class taskActivity : AppCompatActivity() {
+class taskActivity  : AppCompatActivity() {
 
     private val BASE_URL = "https://www.boredapi.com/api/activity/"
     private val TAG = "MainActivity"
+    private lateinit var fireBaseDb: FirebaseFirestore
 
     // Define an array to store a list of users
     private val taskList = ArrayList<Task>()
@@ -31,6 +38,7 @@ class taskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task)
+        fireBaseDb = FirebaseFirestore.getInstance()
     }
 
     fun addRandTask(view:View){
@@ -83,9 +91,42 @@ class taskActivity : AppCompatActivity() {
 
                 // Update the adapter with the new data
                 taskList.add(0,body)
+                addDataCustomClass(body)
                 adapter.notifyDataSetChanged()
             }
         })
+    }
+
+    fun launchCompletedTaskActivity(view: View) {
+        // Launch the second activity
+        val intent = Intent(this, CompletedTaskActivity::class.java)
+        Log.d(TAG, "Launching the third activity")
+        startActivity(intent)
+    }
+
+    // Add  a record to db
+    fun addDataCustomClass(task: Task) {
+        // Get an instance of our collection
+        val savedTasks = fireBaseDb.collection("Tasks")
+
+        // Custom class is used to represent your document
+        val newTask = Task(
+            task.activity,
+            task.accessibility,
+            task.type,
+            task.participants,
+            task.price,
+            task.link,
+            task.key,
+            " ",
+            FirebaseAuth.getInstance().currentUser!!.uid
+        )
+
+        // Get an auto generated id for a document that you want to insert
+        val id = savedTasks.document().id
+
+        // Add data
+        savedTasks.document(id).set(newTask)
     }
 
 

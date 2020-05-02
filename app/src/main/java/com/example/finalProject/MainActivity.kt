@@ -14,6 +14,7 @@ import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObjects
+import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
@@ -39,6 +40,8 @@ class MainActivity : AppCompatActivity() {
 
         // Get a Cloud Firestore instance
         fireBaseDb = FirebaseFirestore.getInstance()
+        //gets user id
+        Log.d("test",FirebaseAuth.getInstance().currentUser!!.uid)
 
 
         // #### Authentication using FirebaseAuth #####
@@ -49,6 +52,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+    //goes to task list activity
     fun launchSecondActivity(view: View) {
         // Launch the second activity
         val intent = Intent(this, taskActivity::class.java)
