@@ -39,6 +39,7 @@ class taskActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task)
         fireBaseDb = FirebaseFirestore.getInstance()
+        loadUserData()
     }
 
 
@@ -128,5 +129,40 @@ class taskActivity  : AppCompatActivity() {
         savedTasks.document(id).set(newTask)
     }
 
+    //this function loads all of the active tasks for the logged in user
+    fun loadUserData() {
+        task_recycler_view.adapter = adapter
+        task_recycler_view.layoutManager = LinearLayoutManager(this)
 
+        // Get data using addOnSuccessListener
+        fireBaseDb.collection("Tasks")
+            //.orderBy("id") //use this later to order the tasks by new to old
+            //.orderBy("id", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { documents ->
+                // The result (documents) contains all the records in db, each of them is a document
+                for (document in documents) {
+                    if(FirebaseAuth.getInstance().currentUser!!.uid == document.get("uid").toString()) //check if logged in user id matches the uid of task
+                    {
+                        val newTask = Task(
+                            document.get("activity").toString(),
+                            document.get("accessibility").toString(),
+                            document.get("type").toString(),
+                            document.get("participants").toString(),
+                            document.get("price").toString(),
+                            document.get("link").toString(),
+                            document.get("key").toString().toInt(),
+                            document.get("image").toString(),
+                            document.get("uid").toString()
+                        )
+                        // Update the adapter with the new data
+                        taskList.add(0,newTask)
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Log.d(TAG, "Error getting documents")
+            }
+    }
 }
