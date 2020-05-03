@@ -192,11 +192,11 @@
 
     <Button
         android:id="@+id/button2"
-        android:layout_width="82dp"
-        android:layout_height="42dp"
+        android:layout_width="130dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="32dp"
         android:onClick="launchSecondActivity"
-        android:text="Button"
+        android:text="Go to Tasks"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"

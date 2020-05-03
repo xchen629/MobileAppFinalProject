@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import io.opencensus.metrics.LongGauge
@@ -67,30 +68,34 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
         fun showDeleteOrSaveDialog(view: View, selectedItem:Int){
             val selectedItemValue = tasks[selectedItem].activity
             //val mDialogView = LayoutInflater.from(view.context).inflate(R.layout.customDialog, null)
-            // Create an alertdialog builder object,
-            // then set attributes that you want the dialog to have
+
             val builder = AlertDialog.Builder(view.context)
             builder.setTitle("You Selected: $selectedItemValue")
             builder.setMessage("What would you like to do with this task?")
             // Set an icon, optional
             //builder.setIcon(android.R.drawable.ic_delete)
 
-            // Set the button actions, all of them are optional
+            // Set the button actions
             builder.setPositiveButton("DELETE") { dialog, which ->
-                deleteTask(tasks[selectedItem].key)
-                Log.d("adapter",selectedItem.toString())
-                tasks.removeAt(selectedItem)
-                notifyItemRemoved(selectedItem)
+                deleteTask(tasks[selectedItem].key) //delete from database
+                tasks.removeAt(selectedItem)  //remove from the recycler view
+                notifyItemRemoved(selectedItem) //update recycler
                 Toast.makeText(
                     itemView.context, "Deleting Task: $selectedItemValue",
                     Toast.LENGTH_SHORT
                 ).show()
-
             }
 
             builder.setNegativeButton("SAVE") { dialog, which ->
-                //save here
-                //showSaveChoiceDialog()
+                saveCompletedTask(tasks[selectedItem])
+                //showSaveChoiceDialog() //ask user if they want to take pic, upload pic, or just use default image
+                deleteTask(tasks[selectedItem].key) //delete from database
+                tasks.removeAt(selectedItem)  //remove from the recycler view
+                notifyItemRemoved(selectedItem) //update recycler
+                Toast.makeText(
+                    itemView.context, "Task Saved: $selectedItemValue",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
             builder.setNeutralButton("Cancel") { dialog, which ->
@@ -125,5 +130,29 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
                     }
                 }
             }
+    }
+
+    fun saveCompletedTask(task:Task){
+        // Get an instance of our collection
+        val savedCTasks = fireBaseDb.collection("CompletedTasks")
+
+        // Custom class is used to represent your document
+        val newTask = Task(
+            task.activity,
+            task.accessibility,
+            task.type,
+            task.participants,
+            task.price,
+            task.link,
+            task.key,
+            " ",
+            FirebaseAuth.getInstance().currentUser!!.uid
+        )
+
+        // Get an auto generated id for a document that you want to insert
+        val id = savedCTasks.document().id
+
+        // Add data
+        savedCTasks.document(id).set(newTask)
     }
 }

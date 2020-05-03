@@ -18,123 +18,28 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class CompletedTaskActivity : AppCompatActivity() {
 
+    private val TAG = "CompletedTasksActivity"
+    private lateinit var fireBaseDb: FirebaseFirestore
+
+    // Define an array to store a list of users
+    private val taskList = ArrayList<Task>()
+    // specify a viewAdapter for the dataset
+    val adapter = CompletedTasksAdapter(taskList)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_completed_task)
         fireBaseDb = FirebaseFirestore.getInstance()
-        loadUserData()
-    }
-
-    private val BASE_URL = "https://www.boredapi.com/api/activity/"
-    private val TAG = "MainActivity"
-    private lateinit var fireBaseDb: FirebaseFirestore
-
-    // Define an array to store a list of users
-    private val taskList = ArrayList<Task>()
-
-    // specify a viewAdapter for the dataset
-    val adapter = TasksAdapter(taskList)
-    val retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    val randomTaskAPI = retrofit.create(RandomTaskService::class.java)
-
-
-    fun addTask(view: View){
-        completedTasks_rv.adapter = adapter
-        completedTasks_rv.layoutManager = LinearLayoutManager(this)
-        val category = categorySpinner.selectedItem.toString().toLowerCase()
-
-        if(category == "random"){
-            randomTaskAPI.getTask().enqueue(object : Callback<Task> {
-                override fun onFailure(call: Call<Task>, t: Throwable) {
-                    Log.d(TAG, "onFailure : $t")
-                }
-
-                override fun onResponse(call: Call<Task>, response: Response<Task>) {
-                    Log.d(TAG, "onResponse: $response")
-                    Log.d(TAG, "onResponse: ${response.body()?.activity}")
-                    val body = response.body()
-
-                    if (body == null){
-                        Log.w(TAG, "Valid response was not received")
-                        return
-                    }
-
-                    // Update the adapter with the new data
-                    taskList.add(0,body)
-                    addTaskToDatabase(body)
-                    adapter.notifyDataSetChanged()
-                }
-            })
-        }
-        else{
-            // Using enqueue method allows to make asynchronous call without blocking/freezing main thread
-            randomTaskAPI.getTaskOfType(category).enqueue(object : Callback<Task> {
-                override fun onFailure(call: Call<Task>, t: Throwable) {
-                    Log.d(TAG, "onFailure : $t")
-                }
-
-                override fun onResponse(call: Call<Task>, response: Response<Task>) {
-                    Log.d(TAG, "onResponse: $response")
-                    Log.d(TAG, "onResponse: ${response.body()?.activity}")
-                    val body = response.body()
-
-                    if (body == null){
-                        Log.w(TAG, "Valid response was not received")
-                        return
-                    }
-
-                    // Update the adapter with the new data
-                    taskList.add(0,body)
-                    addTaskToDatabase(body)
-                    adapter.notifyDataSetChanged()
-                }
-            })
-        }
-    }
-
-    fun launchCompletedTaskActivity(view: View) {
-        // Launch the second activity
-        val intent = Intent(this, CompletedTaskActivity::class.java)
-        Log.d(TAG, "Launching the third activity")
-        startActivity(intent)
-    }
-
-    // Add  a record to db
-    fun addTaskToDatabase(task: Task) {
-        // Get an instance of our collection
-        val savedTasks = fireBaseDb.collection("Tasks")
-
-        // Custom class is used to represent your document
-        val newTask = Task(
-            task.activity,
-            task.accessibility,
-            task.type,
-            task.participants,
-            task.price,
-            task.link,
-            task.key,
-            " ",
-            FirebaseAuth.getInstance().currentUser!!.uid
-        )
-
-        // Get an auto generated id for a document that you want to insert
-        val id = savedTasks.document().id
-
-        // Add data
-        savedTasks.document(id).set(newTask)
+        loadCompletedTasksData()
     }
 
     //this function loads all of the active tasks for the logged in user
-    fun loadUserData() {
+    fun loadCompletedTasksData() {
         completedTasks_rv.adapter = adapter
         completedTasks_rv.layoutManager = LinearLayoutManager(this)
 
         // Get data using addOnSuccessListener
-        fireBaseDb.collection("Tasks")
+        fireBaseDb.collection("CompletedTasks")
             //.orderBy("id") //use this later to order the tasks by new to old
             //.orderBy("id", Query.Direction.DESCENDING)
             .get()
