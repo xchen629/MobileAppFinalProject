@@ -23,6 +23,7 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // - replace the contents of the view with that element
         val currentItem = tasks[position]
         holder.activityName.text = currentItem.activity
+        holder.img.setImageResource(R.drawable.ic_contacts_black_24dp)
 
     }
 
@@ -39,6 +40,7 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // This class also allows caching views and reuse them
         // Each MyViewHolder object keeps a reference to 3 view items in our row_item.xml file
         val activityName = itemView.tv_name
+        val img = itemView.image_profile
 
         // Set onClickListener to show a toast message for the selected row item in the list
         init {

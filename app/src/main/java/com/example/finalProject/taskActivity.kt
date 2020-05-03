@@ -21,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class taskActivity  : AppCompatActivity() {
 
     private val BASE_URL = "https://www.boredapi.com/api/activity/"
-    private val TAG = "TaskActivity"
+    private val TAG = "MainActivity"
     private lateinit var fireBaseDb: FirebaseFirestore
 
     // Define an array to store a list of users

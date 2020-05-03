@@ -1,24 +1,49 @@
 package com.example.finalProject
 
+import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
+import android.media.MediaPlayer
+import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.content.ContentResolver
+import android.os.Bundle
+import androidx.core.app.ActivityCompat.startActivity
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.squareup.picasso.Picasso
+import dmax.dialog.SpotsDialog
 import io.opencensus.metrics.LongGauge
+import kotlinx.android.synthetic.main.activity_button_and_photo.*
 import kotlinx.android.synthetic.main.row_item.view.*
+import java.io.IOException
 import java.security.AccessController.getContext
+import java.util.*
+import kotlin.collections.ArrayList
 
 
-class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<TasksAdapter.MyViewHolder>() {
+class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<TasksAdapter.MyViewHolder>(){
     private var fireBaseDb: FirebaseFirestore = FirebaseFirestore.getInstance()
-    
+    var playSound : MediaPlayer? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         // create a new view
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_item, parent, false)
@@ -86,16 +111,18 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
                 ).show()
             }
 
-            builder.setNegativeButton("SAVE") { dialog, which ->
+            builder.setNegativeButton("COMPLETE TASK") { dialog, which ->
                 saveCompletedTask(tasks[selectedItem])
-                //showSaveChoiceDialog() //ask user if they want to take pic, upload pic, or just use default image
+                showPhotoOptionsDialog(itemView) //ask user if they want to take pic, upload pic, or just use default image
                 deleteTask(tasks[selectedItem].key) //delete from database
                 tasks.removeAt(selectedItem)  //remove from the recycler view
                 notifyItemRemoved(selectedItem) //update recycler
                 Toast.makeText(
-                    itemView.context, "Task Saved: $selectedItemValue",
+                    itemView.context, "Task Completed: $selectedItemValue",
                     Toast.LENGTH_SHORT
                 ).show()
+                //play sound from media player
+                playSound(itemView)
             }
 
             builder.setNeutralButton("Cancel") { dialog, which ->
@@ -154,5 +181,38 @@ class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<Ta
 
         // Add data
         savedCTasks.document(id).set(newTask)
+    }
+
+    //function that plays the sound
+    private fun playSound(view: View) {
+        if (playSound == null){
+            playSound = MediaPlayer.create(view.context, R.raw.song)
+        }
+        playSound?.start()
+    }
+
+
+    private fun showPhotoOptionsDialog(view: View) {
+        // Create an alertdialog builder object,
+        // then set attributes that you want the dialog to have
+        val builder = androidx.appcompat.app.AlertDialog.Builder(view.context)
+        builder.setTitle("What would you like to do?")
+        builder.setMessage("Choose an option below to complete with the task!")
+
+        // Open the camera if user choose this option
+        builder.setPositiveButton("Picture from Camera"){ dialog, which ->
+            //openCamera()
+        }
+        //Open up the gallery if user choose this option
+        builder.setNegativeButton("Upload from gallery"){dialog, which ->
+            //chooseImage()
+        }
+        //Play the sound if user choose this button
+        builder.setNeutralButton("No picture"){dialog, which ->
+            playSound(view)
+        }
+        // create the dialog and show it
+        val dialog = builder.create()
+        dialog.show()
     }
 }
