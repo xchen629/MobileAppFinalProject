@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                             Log.d(TAG, "${document.id} => ${document.data}")
                             // delete the document
                             document.reference.delete()
-                            
+
                             clearEditTexts()
                             showToast("Contact has been deleted.")
                             // Assuming there is only one document we want to delete so break the loop

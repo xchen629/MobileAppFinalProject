@@ -16,15 +16,9 @@ import java.security.AccessController.getContext
 
 
 class TasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<TasksAdapter.MyViewHolder>() {
-
-    //var count = 0
-    private val TAG = "UsersAdapter"
     private var fireBaseDb: FirebaseFirestore = FirebaseFirestore.getInstance()
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        // Inflate a layout from our XML (row_item.XML) and return the holder
-        //Log.d(TAG, "onCreateViewHolder: ${count++}")
-
         // create a new view
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_item, parent, false)
         return MyViewHolder(view)
