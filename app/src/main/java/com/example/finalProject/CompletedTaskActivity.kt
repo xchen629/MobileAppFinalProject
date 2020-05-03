@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_completed_task.*
-import kotlinx.android.synthetic.main.activity_task.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -57,7 +56,8 @@ class CompletedTaskActivity : AppCompatActivity() {
                             document.get("link").toString(),
                             document.get("key").toString().toInt(),
                             document.get("image").toString(),
-                            document.get("uid").toString()
+                            document.get("uid").toString(),
+                            document.get("description").toString()
                         )
                         // Update the adapter with the new data
                         taskList.add(0,newTask)

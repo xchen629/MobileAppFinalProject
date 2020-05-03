@@ -15,7 +15,8 @@ data class Task(
     val link:String,
     val key: Int,
     val image: String? = null,
-    val uid: String? = null
+    val uid: String? = null,
+    val description: String
 )
 
 

@@ -1,64 +1,253 @@
 package com.example.finalProject
 
+import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentValues
 import android.content.Intent
+import android.media.MediaPlayer
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.toObjects
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import dmax.dialog.SpotsDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.content_main.completeTaskBtn
+import kotlinx.android.synthetic.main.content_main.categorySpinner
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
+    var currentTask = Task("","","","","","",0,"","","")
 
     private lateinit var fireBaseDb: FirebaseFirestore
+    private val CAMERA_REQUEST = 1000
+    private val PERMISSION_PICK_IMAGE = 1001
+    internal var filePath: Uri? = null
+
+    //Dialog
+    lateinit var dialog: AlertDialog
+
+    //Firebase
+    lateinit var storage: FirebaseStorage
+    lateinit var storageReference: StorageReference
+
+    var playSound : MediaPlayer? = null
+    private val BASE_URL = "https://www.boredapi.com/api/activity/"
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    val randomTaskAPI = retrofit.create(RandomTaskService::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+        storage = FirebaseStorage.getInstance()
+        storageReference = storage.reference
+        dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
 
-        val button = findViewById<Button>(R.id.testButton)
-        button.setOnClickListener{
-            val intent = Intent(this, ButtonAndPhoto::class.java)
-            startActivity(intent)
+        val clickable_imageview = findViewById<ImageView>(R.id.image_view)
+
+        clickable_imageview.setOnClickListener{
+            showDialog()
         }
 
+        completeTaskBtn.setOnClickListener {
+            uploadImage()
+            saveCompletedTask(currentTask)
+        }
 
+        setSupportActionBar(toolbar)
 
         // Get a Cloud Firestore instance
         fireBaseDb = FirebaseFirestore.getInstance()
-        //gets user id
-        Log.d("test",FirebaseAuth.getInstance().currentUser!!.uid)
-
+        loadUserData()
+        Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
 
         // #### Authentication using FirebaseAuth #####
         // If currentUser is null, open the RegisterActivity
         if (FirebaseAuth.getInstance().currentUser == null){
            startRegisterActivity()
         }
-
     }
 
+    fun addTask(view:View){
+        deleteTask() //remove previous task
+        val category = categorySpinner.selectedItem.toString().toLowerCase()
+        if(category == "random"){
+            randomTaskAPI.getTask().enqueue(object : Callback<Task> {
+                override fun onFailure(call: Call<Task>, t: Throwable) {
+                    Log.d(TAG, "onFailure : $t")
+                }
 
-    //goes to task list activity
-    fun launchSecondActivity(view: View) {
+                override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                    Log.d(TAG, "onResponse: $response")
+                    Log.d(TAG, "onResponse: ${response.body()?.activity}")
+                    val body = response.body()
+
+                    if (body == null){
+                        Log.w(TAG, "Valid response was not received")
+                        return
+                    }
+
+                    task_tv.text = body.activity
+                    currentTask = body
+                    addTaskToDatabase(body)
+                }
+            })
+        }
+        else{
+            // Using enqueue method allows to make asynchronous call without blocking/freezing main thread
+            randomTaskAPI.getTaskOfType(category).enqueue(object : Callback<Task> {
+                override fun onFailure(call: Call<Task>, t: Throwable) {
+                    Log.d(TAG, "onFailure : $t")
+                }
+
+                override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                    Log.d(TAG, "onResponse: $response")
+                    Log.d(TAG, "onResponse: ${response.body()?.activity}")
+                    val body = response.body()
+
+                    if (body == null){
+                        Log.w(TAG, "Valid response was not received")
+                        return
+                    }
+
+                    task_tv.text = body.activity
+                    currentTask = body
+                    addTaskToDatabase(body)
+                }
+            })
+        }
+    }
+
+    fun deleteTask() {
+        fireBaseDb.collection("Tasks")
+            .whereEqualTo("uid",FirebaseAuth.getInstance().currentUser!!.uid)
+            .whereEqualTo("activity",task_tv.text.toString())
+            .get()
+            .addOnSuccessListener { documents ->
+
+                for (document in documents) {
+                    if (document != null) {
+                        // delete the document
+                        document.reference.delete()
+
+                    } else {
+                        Log.d(TAG, "No such document")
+                    }
+                }
+            }
+    }
+
+    fun saveCompletedTask(task:Task){
+        // Get an instance of our collection
+        val savedCTasks = fireBaseDb.collection("CompletedTasks")
+
+        // Custom class is used to represent your document
+        val newTask = Task(
+            task.activity,
+            task.accessibility,
+            task.type,
+            task.participants,
+            task.price,
+            task.link,
+            task.key,
+            " ",
+            FirebaseAuth.getInstance().currentUser!!.uid,
+            description_tv.text.toString()
+        )
+
+        // Get an auto generated id for a document that you want to insert
+        val id = savedCTasks.document().id
+
+        // Add data
+        savedCTasks.document(id).set(newTask)
+        deleteTask()
+        val newText = "Press button to get new task"
+        task_tv.text = newText
+        description_tv.text.clear()
+    }
+
+    fun launchCompletedTaskActivity(view: View) {
         // Launch the second activity
-        val intent = Intent(this, taskActivity::class.java)
-        Log.d(TAG, "Launching the second activity")
+        val intent = Intent(this, CompletedTaskActivity::class.java)
+        Log.d(TAG, "Launching the third activity")
         startActivity(intent)
+    }
+
+    // Add  a record to db
+    fun addTaskToDatabase(task: Task) {
+        // Get an instance of our collection
+        val savedTasks = fireBaseDb.collection("Tasks")
+
+        // Get an auto generated id for a document that you want to insert
+        val id = savedTasks.document().id
+
+        // Add data
+        savedTasks.document(id).set(task)
+    }
+
+    //this function loads all of the active tasks for the logged in user
+    fun loadUserData() {
+
+        // Get data using addOnSuccessListener
+        fireBaseDb.collection("Tasks")
+            //.orderBy("id") //use this later to order the tasks by new to old
+            //.orderBy("id", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { documents ->
+                // The result (documents) contains all the records in db, each of them is a document
+                for (document in documents) {
+                    if(FirebaseAuth.getInstance().currentUser!!.uid == document.get("uid").toString()) //check if logged in user id matches the uid of task
+                    {
+                        val newTask = Task(
+                            document.get("activity").toString(),
+                            document.get("accessibility").toString(),
+                            document.get("type").toString(),
+                            document.get("participants").toString(),
+                            document.get("price").toString(),
+                            document.get("link").toString(),
+                            document.get("key").toString().toInt(),
+                            document.get("image").toString(),
+                            document.get("uid").toString(),
+                            document.get("description").toString()
+                        )
+                        task_tv.text = newTask.activity
+                        currentTask = newTask
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Log.d(TAG, "Error getting documents")
+            }
     }
 
     // An helper function to start our RegisterActivity
@@ -102,351 +291,135 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-
-    // Alternative-1 --> uses a hashMap to structure the data to be inserted into the db
-    // Add  a record to db
-    fun addButton(view: View) {
-
-        // Get an instance of our collection
-        val contacts = fireBaseDb.collection("contacts")
-
-        // Map or Dictionary objects is used to represent your document
-        val contact = hashMapOf(
-            "id" to text_id.text.toString(),
-            "name" to text_name.text.toString(),
-            "email" to text_email.text.toString()
-        )
-
-        // Get an auto generated id for a document that you want to insert
-        val documentId = contacts.document().id
-
-        // Add data
-        contacts.document(documentId).set(contact)
-
-        // Clear texts and inform the user
-        clearEditTexts()
-        showDialog("Success", "Contact has been added.")
-
-    }
-
-
-
-    // Alternative-1
-    // Read all the records from the database
-    fun viewAllDataButton(view: View) {
-
-        // Get data using addOnSuccessListener
-        fireBaseDb.collection("contacts")
-            .orderBy("id")  // Here you can also use orderBy to sort the results based on a field such as id
-            //.orderBy("id", Query.Direction.DESCENDING)  // this would be used to orderBy in DESCENDING order
-            .get()
-            .addOnSuccessListener { documents ->
-
-                val buffer = StringBuffer()
-
-                // The result (documents) contains all the records in db, each of them is a document
-                for (document in documents) {
-
-                    Log.d(TAG, "${document.id} => ${document.data}")
-
-                    Log.d(TAG, "contact: ${document.get("id")}, ${document.get("name")}, ${document.get("email")}")
-
-                    // Create a string buffer (i.e., concatenate all the fields into one string)
-                    buffer.append("ID : ${document.get("id")}" + "\n")
-                    buffer.append("NAME : ${document.get("name")}" + "\n")
-                    buffer.append("EMAIL :  ${document.get("email")}" + "\n\n")
-                }
-
-                // show all the records as a string in a dialog
-                showDialog("Data Listing", buffer.toString())
+    //Upload image to the firebase storage
+    private fun uploadImage() {
+        if (filePath != null){
+            dialog.show()
+            val reference = storageReference.child("images/" + UUID.randomUUID().toString())
+            reference.putFile(filePath!!).addOnSuccessListener { taskSnapshot ->
+                dialog.dismiss()
+                Toast.makeText(this@MainActivity, "Uploaded!", Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener{e ->
+                dialog.dismiss()
+                Toast.makeText(this@MainActivity, "Failed!", Toast.LENGTH_SHORT).show()
+            }.addOnProgressListener {taskSnapshot ->
+                val progress = 100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount
+                dialog.setMessage("Uploaded $progress")
             }
-            .addOnFailureListener {
-                Log.d(TAG, "Error getting documents")
-                showDialog("Error", "Error getting documents")
-            }
-    }
-
-
-
-    // Delete a contact based on its id
-    fun deleteButton(view: View) {
-
-        // get the id from the user
-        val id = text_id.text.toString()
-
-        if (id.isNotEmpty()) {
-
-            // To delete the contact based on id, we first execute a query to get a reference to
-            // document to be deleted, then loop over matching documents and finally delete each
-            // document based on its reference
-            fireBaseDb.collection("contacts")
-                .whereEqualTo("id", id.toInt())
-                .get()
-                .addOnSuccessListener {documents->
-
-                    for (document in documents) {
-                        if (document != null) {
-                            Log.d(TAG, "${document.id} => ${document.data}")
-                            // delete the document
-                            document.reference.delete()
-
-                            clearEditTexts()
-                            showToast("Contact has been deleted.")
-                            // Assuming there is only one document we want to delete so break the loop
-                            break
-                        } else {
-                            Log.d(TAG, "No such document")
-                        }
-                    }
-                }
-
-        } else {
-            showToast("Enter an id")
         }
     }
 
+    //Choose image from the gallery
+    private fun chooseImage() {
+        Dexter.withActivity(this).withPermissions(android.Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE).withListener(object:
+            MultiplePermissionsListener {
+            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                if(report!!.areAllPermissionsGranted()){
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.type = "image/*"
+                    startActivityForResult(Intent.createChooser(intent, "Select Image"), PERMISSION_PICK_IMAGE)
+                }
+                else{
+                    Toast.makeText(this@MainActivity, "Permission Denied!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onPermissionRationaleShouldBeShown(
+                permissions: MutableList<PermissionRequest>?,
+                token: PermissionToken?
+            ) {
+                token!!.continuePermissionRequest()
+            }
+        }).check()
+    }
 
-    // Alternative-1 --> uses map to represent contact data to updated
-    // Update a contact using id
-    fun updateButton(view: View) {
+    //Opens the camera
+    private fun openCamera() {
+        Dexter.withActivity(this).withPermissions(android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE).withListener(object:
+            MultiplePermissionsListener {
+            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                if(report!!.areAllPermissionsGranted()){
+                    val values = ContentValues()
+                    values.put(MediaStore.Images.Media.TITLE, "New Picture")
+                    values.put(MediaStore.Images.Media.DESCRIPTION, "From Camera")
+                    filePath = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
-        // get the id from the user
-        val id = text_id.text.toString()
+                    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, filePath)
+                    startActivityForResult(cameraIntent, CAMERA_REQUEST)
+                }
+                else{
+                    Toast.makeText(this@MainActivity, "Permission Denied!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onPermissionRationaleShouldBeShown(
+                permissions: MutableList<PermissionRequest>?,
+                token: PermissionToken?
+            ) {
+                token!!.continuePermissionRequest()
+            }
+        }).check()
+    }
 
-        if (id.isNotEmpty()) {
-
-            // Create hashMap with updated contact data: name and email
-            val updatedContact = mapOf(
-                "name" to text_name.text.toString(),
-                "email" to text_email.text.toString()
-            )
-
-
-            // To update the contact based on id, we first execute a query to get a reference to
-            // document to be updated, then loop over matching documents and finally update each
-            // document based on its reference
-            fireBaseDb.collection("contacts")
-                .whereEqualTo("id", id.toInt())
-                .get()
-                .addOnSuccessListener { documents ->
-
-                    for (document in documents) {
-                        if (document != null) {
-                            Log.d(TAG, "${document.id} => ${document.data}")
-
-                            // update the document
-                            document.reference.update(updatedContact)
-
-                            clearEditTexts()
-                            showToast("Contact has been updated.")
-                            // Assuming there is only one document we want to update so break the loop
-                            break
-                        } else {
-                            Log.d(TAG, "No such document")
+    //this sets the image to the image view
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == PERMISSION_PICK_IMAGE) {
+                if (data != null) {
+                    if (data.data != null) {
+                        filePath = data.data
+                        try {
+                            val bitmap =
+                                MediaStore.Images.Media.getBitmap(contentResolver, filePath)
+                            image_view.setImageBitmap(bitmap)
+                        } catch (e: IOException) {
+                            e.printStackTrace()
                         }
                     }
                 }
-
-        } else {
-            showToast("Enter an id")
+            }
+            if (requestCode == CAMERA_REQUEST) {
+                try {
+                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filePath)
+                    image_view.setImageBitmap(bitmap)
+                }
+                catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 
+    private fun showDialog() {
+        // Create an alertdialog builder object,
+        // then set attributes that you want the dialog to have
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("What would you like to do?")
+        builder.setMessage("Choose an option below to complete with the task!")
 
-    /**
-     * -----------------------------------------------------------------------
-     * ########################################################################
-     *
-     *
-     * The functions below function as the above functions using a custom class
-     *
-     *
-     * ########################################################################
-     * ------------------------------------------------------------------------
-     */
-
-
-    // Alternative-2 --> uses a custom class to represent the data to be inserted into the db
-    // Add  a record to db
-    fun addButtonWithCustomClass(view: View) {
-
-        // Get an instance of our collection
-        val contacts = fireBaseDb.collection("contacts")
-
-        // Custom class is used to represent your document
-        // it is recommended to have a custom class to represent the data
-        val contact = Contact(
-            text_id.text.toString().toInt(),
-            text_name.text.toString(),
-            text_email.text.toString()
-        )
-
-        // Get an auto generated id for a document that you want to insert
-        val id = contacts.document().id
-
-        // Add data
-        contacts.document(id).set(contact)
-
-        // Clear texts and inform the user
-        clearEditTexts()
-        showDialog("Success", "Contact has been added.")
-
-
-    }
-
-    // Alternative-2 --> Uses custom objects (i.e., Contact data class)
-    // Read all the records from the database
-    fun viewAllDataButtonWithCustomClass(view: View) {
-
-        // Get data using addOnSuccessListener
-        fireBaseDb.collection("contacts")
-            .orderBy("id")
-            .get()
-            .addOnSuccessListener { documents ->
-
-                val buffer = StringBuffer()
-
-                // Turn your document(s) to Contact object
-                val contacts = documents.toObjects<Contact>()
-
-                for (contact in contacts) {
-
-                    Log.d(TAG, "contact: ${contact}")
-
-                    // Create a string buffer (i.e., concatenate all the fields into one string)
-                    buffer.append("ID : ${contact.id}" + "\n")
-                    buffer.append("NAME : ${contact.name}" + "\n")
-                    buffer.append("EMAIL :  ${contact.email}" + "\n\n")
-                }
-
-                // show all the records as a string in a dialog
-                showDialog("Data Listing", buffer.toString())
-            }
-            .addOnFailureListener {
-                Log.d(TAG, "Error getting documents")
-                showDialog("Error", "Error getting documents")
-            }
-    }
-
-
-
-
-
-    // Alternative-2 --> uses a custom class to represent the data to be update in the db
-    // Update a contact using id
-    fun updateButtonWithCustomClass(view: View) {
-
-        // get the id from the user
-        val id = text_id.text.toString()
-
-        if (id.isNotEmpty()) {
-
-
-            // Create hashMap with updated contact data: name and email
-            val updatedContact = Contact(
-                id.toInt(),
-                text_name.text.toString(),
-                text_email.text.toString()
-            )
-
-
-            // To update the contact based on id, we first execute a query to get a reference to
-            // document to be updated, then loop over matching documents and finally update each
-            // document based on its reference
-            fireBaseDb.collection("contacts")
-                .whereEqualTo("id", id.toInt())
-                .get()
-                .addOnSuccessListener { documents ->
-
-                    for (document in documents) {
-                        if (document != null) {
-                            Log.d(TAG, "${document.id} => ${document.data}")
-
-                            // update the document
-                            document.reference.set(updatedContact)
-
-                            clearEditTexts()
-                            showToast("Contact has been updated.")
-                            // Assuming there is only one document we want to delete so break the loop
-                            break
-                        } else {
-                            Log.d(TAG, "No such document")
-                        }
-                    }
-                }
-
-        } else {
-            showToast("Enter an id")
+        // Open the camera if user choose this option
+        builder.setPositiveButton("Picture from Camera"){ dialog, which ->
+            openCamera()
         }
+        //Open up the gallery if user choose this option
+        builder.setNegativeButton("Upload from gallery"){dialog, which ->
+            chooseImage()
+        }
+        //Play the sound if user choose this button
+        builder.setNeutralButton("No picture"){dialog, which ->
+            //set default pic here
+            //maybe random cat pic?
+        }
+        // create the dialog and show it
+        val dialog = builder.create()
+        dialog.show()
     }
 
-    /**
-     * ######################### End of Alternative-2 functions ###################################
-     */
-
-    // Gets realtime updates whenever the data on the server is updated
-    fun realtimeUpdateButton(view: View) {
-
-        // Get real time update
-        fireBaseDb.collection("contacts")
-            .addSnapshotListener{ snapshots, e ->
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e)
-                    return@addSnapshotListener
-                }
-
-                
-                if (snapshots != null) {
-
-                    // This will be called every time a document is updated
-                    Log.d(TAG, "onEvent: -----------------------------")
-                    
-                    val contacts = snapshots.toObjects<Contact>()
-                    for (contact in contacts) {
-                        Log.d(TAG, "Current data: ${contact}")
-                        showData(contact)
-                    }
-                } else {
-                    Log.d(TAG, "Current data: null")
-                }
-            }
-    }
-
-    /**
-     * A helper function to show contact data in the textViews
-     */
-    private fun showData(contact: Contact){
-        text_id.setText(contact.id.toString())
-        text_name.setText(contact.name.toString())
-        text_email.setText(contact.email.toString())
-    }
-
-    /**
-     * A helper function to show Toast message
-     */
-    private fun showToast(text: String){
-        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
-    }
-
-    /**
-     * show an alert dialog with data dialog.
-     */
-    private fun showDialog(title : String,Message : String){
-        val builder = AlertDialog.Builder(this)
-        builder.setCancelable(true)
-        builder.setTitle(title)
-        builder.setMessage(Message)
-        builder.show()
-    }
-
-
-    /**
-     * A helper function to clear our edittexts
-     */
-    private fun clearEditTexts(){
-        text_email.text.clear()
-        text_id.text.clear()
-        text_name.text.clear()
+    //function that plays the sound
+    private fun playSound() {
+        if (playSound == null){
+            playSound = MediaPlayer.create(this, R.raw.song)
+        }
+        playSound?.start()
     }
 }
