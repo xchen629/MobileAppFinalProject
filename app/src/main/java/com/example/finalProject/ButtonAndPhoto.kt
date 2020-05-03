@@ -1,6 +1,8 @@
 package com.example.finalProject
 
+import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
@@ -15,158 +17,178 @@ import android.provider.MediaStore
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.ImageView
 import android.widget.Toast
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import dmax.dialog.SpotsDialog
+import io.grpc.Context
 import kotlinx.android.synthetic.main.activity_button_and_photo.*
 import kotlinx.android.synthetic.main.activity_register.*
-import java.util.jar.Manifest
-
+import java.io.IOException
+import java.util.*
 
 //This Class is used to do the prototype of the play sound button and camera from the emulator
-class ButtonAndPhoto : AppCompatActivity(), AdapterView.OnItemSelectedListener {
+class ButtonAndPhoto : AppCompatActivity() {
+
+    private val CAMERA_REQUEST = 1000
+    private val PERMISSION_PICK_IMAGE = 1001
+    internal var filePath: Uri? = null
+
+    //Dialog
+    lateinit var dialog: AlertDialog
+
+    //Firebase
+    lateinit var storage: FirebaseStorage
+    lateinit var storageReference: StorageReference
 
     var playSound : MediaPlayer? = null
-    //CODE for opening the camera
-    private val PERMISSION_CODE = 1000
-    private val IMAGE_CAPTURE_CODE = 1001
-    //CODE for opening the gallery
-    companion object{
-        //image pick code
-        private val IMAGE_PICK_CODE = 1000
-        //Permission code
-        private val PERMISSION_FOR_CHOOSE = 1001
-    }
 
-    var image_uri: Uri? = null
+    //CODE for opening the gallery
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_button_and_photo)
+        //Firebase reference
+        storage = FirebaseStorage.getInstance()
+        storageReference = storage.reference
+        dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
 
-        val photoChoice = listOf("Choose an option", "Take Photo", "Upload from Gallary", "Complete without picture")
+        val clickable_imageview = findViewById<ImageView>(R.id.image_view)
 
-
-        // Create an adapter with 3 parameters: activity (this), layout, list
-        val myAdopter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, photoChoice)
-
-        // set the adapter to spinner
-        photo_select_spinner.adapter = myAdopter
-
-        // set the onItemSelectedListener as (this).  (this) refers to this activity that implements OnItemSelectedListener interface
-        photo_select_spinner.onItemSelectedListener = this
-    }
-
-    // The following two methods are callback methods of OnItemSelectedListener interface
-    override fun onNothingSelected(parent: AdapterView<*>?) {
-        //Callback method to be invoked when the selection disappears from this view. For example,
-        // if the list becomes empty and the ArrayAdapter is notified, this callback will be invoked
-        //Toast.makeText(this, "Nothing is selected!", Toast.LENGTH_SHORT).show()
-    }
-
-    //This allows user to select the picture choice from spinner
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        // Based on the index of position selected, set the corresponding image
-        val imageId = when(position){
-            0 -> null
-            1 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (checkSelfPermission(android.Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_DENIED ||
-                    checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_DENIED) {
-
-                    //Permission was not enabled
-                    val permission = arrayOf( android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-                    //show popup to request permission
-                    requestPermissions(permission, PERMISSION_CODE)
-                }
-                else {
-                    //permission already granted
-                    openCamera()
-                }
-            }
-            else{
-                openCamera()
-            }
-
-            2 -> if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
-                        PackageManager.PERMISSION_DENIED){
-                    //Permission denied
-                    val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-
-                    //show popup to request runtime permission
-                    requestPermissions(permissions, PERMISSION_FOR_CHOOSE)
-                }
-                else{
-                    //permission already granted
-                    pickImageFromGallery()
-                }
-            }
-            else{
-                //system os is marshmallow or below
-                pickImageFromGallery();
-            }
-
-            else -> playSound()
+        clickable_imageview.setOnClickListener{
+            showDialog()
         }
-        image_view.setImageURI(image_uri)
+
+        btnUpload.setOnClickListener { v ->
+            uploadImage()
+        }
     }
 
-    private fun pickImageFromGallery(){
-        //Intent to pick image
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.type = "image/*"
-        startActivityForResult(intent, IMAGE_PICK_CODE)
-    }
-
-
-    //Function that opens the camera app
-    private fun openCamera(){
-        val values = ContentValues()
-        values.put(MediaStore.Images.Media.TITLE, "New Picture")
-        values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camera")
-        image_uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        //camera intent
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri)
-        startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
-    }
-
-    //function that shows the permission popup
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        //called when user presses ALLOW or  DENY from permission Request Popup
-        when(requestCode){
-            PERMISSION_CODE -> {
-                if(grantResults.size > 0 && grantResults[0] ==
-                        PackageManager.PERMISSION_GRANTED){
-                    //permission from popup was granted
-                    openCamera()
-                    pickImageFromGallery()
-                }
-                else{
-                    //permission from popup was denied
-                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-                }
+    //Upload image to the firebase storage
+    private fun uploadImage() {
+        if (filePath != null){
+            dialog.show()
+            val reference = storageReference.child("images/" + UUID.randomUUID().toString())
+            reference.putFile(filePath!!).addOnSuccessListener { taskSnapshot ->
+                dialog.dismiss()
+                Toast.makeText(this@ButtonAndPhoto, "Uploaded!", Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener{e ->
+                dialog.dismiss()
+                Toast.makeText(this@ButtonAndPhoto, "Failed!", Toast.LENGTH_SHORT).show()
+            }.addOnProgressListener {taskSnapshot ->
+                val progress = 100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount
+                dialog.setMessage("Uploaded $progress")
             }
         }
+    }
+
+    //Choose image from the gallery
+    private fun chooseImage() {
+        Dexter.withActivity(this).withPermissions(android.Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE).withListener(object: MultiplePermissionsListener {
+            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                if(report!!.areAllPermissionsGranted()){
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.type = "image/*"
+                    startActivityForResult(Intent.createChooser(intent, "Select Image"), PERMISSION_PICK_IMAGE)
+                }
+                else{
+                    Toast.makeText(this@ButtonAndPhoto, "Permission Denied!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onPermissionRationaleShouldBeShown(
+                permissions: MutableList<PermissionRequest>?,
+                token: PermissionToken?
+            ) {
+                token!!.continuePermissionRequest()
+            }
+        }).check()
+    }
+
+    //Opens the camera
+    private fun openCamera() {
+        Dexter.withActivity(this).withPermissions(android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE).withListener(object: MultiplePermissionsListener {
+            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                if(report!!.areAllPermissionsGranted()){
+                    val values = ContentValues()
+                    values.put(MediaStore.Images.Media.TITLE, "New Picture")
+                    values.put(MediaStore.Images.Media.DESCRIPTION, "From Camera")
+                    filePath = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+                    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, filePath)
+                    startActivityForResult(cameraIntent, CAMERA_REQUEST)
+                }
+                else{
+                    Toast.makeText(this@ButtonAndPhoto, "Permission Denied!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onPermissionRationaleShouldBeShown(
+                permissions: MutableList<PermissionRequest>?,
+                token: PermissionToken?
+            ) {
+                token!!.continuePermissionRequest()
+            }
+        }).check()
     }
 
     //this sets the image to the image view
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        //called when image was captured from camera intent
-        if(resultCode == Activity.RESULT_OK){
-            //set image captured to image view
-            image_view.setImageURI(image_uri)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == PERMISSION_PICK_IMAGE) {
+                if (data != null) {
+                    if (data.data != null) {
+                        filePath = data.data
+                        try {
+                            val bitmap =
+                                MediaStore.Images.Media.getBitmap(contentResolver, filePath)
+                            image_view.setImageBitmap(bitmap)
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            }
+            if (requestCode == CAMERA_REQUEST) {
+                try {
+                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filePath)
+                    image_view.setImageBitmap(bitmap)
+                }
+                catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
         }
+    }
 
-        if(resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICK_CODE){
-            image_view.setImageURI(data?.data)
+    private fun showDialog() {
+        // Create an alertdialog builder object,
+        // then set attributes that you want the dialog to have
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("What would you like to do?")
+        builder.setMessage("Choose an option below to complete with the task!")
+
+        // Open the camera if user choose this option
+        builder.setPositiveButton("Picture from Camera"){ dialog, which ->
+            openCamera()
         }
+        //Open up the gallery if user choose this option
+        builder.setNegativeButton("Upload from gallery"){dialog, which ->
+            chooseImage()
+        }
+        //Play the sound if user choose this button
+        builder.setNeutralButton("No picture"){dialog, which ->
+            playSound()
+        }
+        // create the dialog and show it
+        val dialog = builder.create()
+        dialog.show()
     }
 
     //function that plays the sound
@@ -177,3 +199,4 @@ class ButtonAndPhoto : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         playSound?.start()
     }
 }
+
