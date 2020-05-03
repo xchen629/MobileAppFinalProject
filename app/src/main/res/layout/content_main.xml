@@ -9,206 +9,101 @@
     tools:showIn="@layout/activity_main"
     tools:context=".MainActivity">
 
-
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/taskTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="ID:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:text="These are your current tasks, hold down on an item to delete or complete a task!"
+        android:textAlignment="center"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/text_id"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:ems="10"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <EditText
-        android:id="@+id/text_email"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:ems="10"
-        android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView2"
-        app:layout_constraintTop_toBottomOf="@+id/text_id" />
-
-    <TextView
-        android:id="@+id/textView2"
+    <Button
+        android:id="@+id/typeTaskBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="Email:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:layout_marginStart="64dp"
+        android:layout_marginBottom="13dp"
+        android:onClick="addTask"
+        android:text="Get task:"
+        app:layout_constraintBottom_toTopOf="@+id/task_tv"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@+id/taskTitle" />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:text="Name:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
-
-    <EditText
-        android:id="@+id/text_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:inputType="textPersonName"
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="184dp"
+        android:layout_height="44dp"
+        android:entries="@array/spinnerItems"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView3"
-        app:layout_constraintTop_toBottomOf="@+id/text_email" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/typeTaskBtn"
+        app:layout_constraintTop_toBottomOf="@+id/taskTitle" />
 
     <Button
-        android:id="@+id/add_button"
+        android:id="@+id/completedTask_Btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:onClick="addButton"
-        android:text="@string/add_record"
-        app:layout_constraintEnd_toStartOf="@+id/view_button"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_name" />
-
-    <Button
-        android:id="@+id/view_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="viewAllDataButton"
-        android:text="@string/view_records"
-        app:layout_constraintBottom_toBottomOf="@+id/add_button"
+        android:layout_marginBottom="148dp"
+        android:onClick="launchCompletedTaskActivity"
+        android:text="View Completed Tasks"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/add_button" />
-
-    <Button
-        android:id="@+id/update_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:onClick="updateButton"
-        android:text="@string/update_record"
-        app:layout_constraintEnd_toStartOf="@+id/delete_button"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.755"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/add_button" />
+        app:layout_constraintTop_toBottomOf="@+id/image_view"
+        app:layout_constraintVertical_bias="0.0" />
 
-    <Button
-        android:id="@+id/delete_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="deleteButton"
-        android:text="@string/delete_record"
-        app:layout_constraintBottom_toBottomOf="@+id/update_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/update_button" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:text="The buttons below do the same functionality as above buttons using a custom class"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:textColor="#EE0808"
-        android:textStyle="bold"
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="303dp"
+        android:layout_height="265dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_image_black_24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/update_button" />
-
-    <Button
-        android:id="@+id/add_button_v2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:onClick="addButtonWithCustomClass"
-        android:text="@string/add_record"
-        app:layout_constraintEnd_toStartOf="@+id/view_button_v2"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4" />
-
-    <Button
-        android:id="@+id/view_button_v2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="viewAllDataButtonWithCustomClass"
-        android:text="@string/view_records"
-        app:layout_constraintBottom_toBottomOf="@+id/add_button_v2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/add_button_v2"
-        app:layout_constraintTop_toTopOf="@+id/add_button_v2" />
-
-    <Button
-        android:id="@+id/update_button_v2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:onClick="updateButtonWithCustomClass"
-        android:text="@string/update_record"
-        app:layout_constraintEnd_toStartOf="@+id/realtime_update_button"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/add_button_v2" />
-
-    <Button
-        android:id="@+id/realtime_update_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:onClick="realtimeUpdateButton"
-        android:text="Realtime Update "
-        app:layout_constraintBottom_toBottomOf="@+id/update_button_v2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/update_button_v2"
-        app:layout_constraintTop_toBottomOf="@+id/view_button_v2"
+        app:layout_constraintTop_toBottomOf="@+id/description_tv"
         app:layout_constraintVertical_bias="0.0" />
 
     <Button
-        android:id="@+id/button2"
-        android:layout_width="130dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="32dp"
-        android:onClick="launchSecondActivity"
-        android:text="Go to Tasks"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/testButton"
+        android:id="@+id/completeTaskBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="GoToSound"
+        android:layout_marginBottom="148dp"
+        android:text="Complete Task"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/completedTask_Btn"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_view"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/task_tv"
+        android:layout_width="352dp"
+        android:layout_height="78dp"
+        android:layout_marginTop="16dp"
+        android:text="Task"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/realtime_update_button" />
+        app:layout_constraintTop_toBottomOf="@+id/categorySpinner" />
+
+    <EditText
+        android:id="@+id/description_tv"
+        android:layout_width="350dp"
+        android:layout_height="114dp"
+        android:ems="10"
+        android:gravity="start|top"
+        android:hint="Enter a description about your completed tasks here (optional)"
+        android:inputType="textMultiLine"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/task_tv" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
