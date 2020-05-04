@@ -1,14 +1,18 @@
 package com.example.finalProject
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
@@ -16,6 +20,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,13 +42,21 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
+import java.security.Timestamp
+import java.sql.Time
+import java.text.DateFormat
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    var currentTask = Task("","","","","","",0,"","","")
+    var currentTask = Task("","","","","","",0,"","","","","")
 
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
@@ -72,7 +85,6 @@ class MainActivity : AppCompatActivity() {
         storage = FirebaseStorage.getInstance()
         storageReference = storage.reference
         dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
-
         val clickable_imageview = findViewById<ImageView>(R.id.image_view)
 
         clickable_imageview.setOnClickListener{
@@ -82,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         completeTaskBtn.setOnClickListener {
             uploadImage()
             saveCompletedTask(currentTask)
+            playSound()
         }
 
         setSupportActionBar(toolbar)
@@ -91,6 +104,15 @@ class MainActivity : AppCompatActivity() {
         loadUserData()
         Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
 
+
+      val mainHandler = Handler(Looper.getMainLooper())
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                loadUserData() //not ideal, instead should be calling //displayElapsedTime()
+                mainHandler.postDelayed(this, 1000)
+            }
+        })
+
         // #### Authentication using FirebaseAuth #####
         // If currentUser is null, open the RegisterActivity
         if (FirebaseAuth.getInstance().currentUser == null){
@@ -98,8 +120,33 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("NewApi")
+    fun displayElapsedTime(){
+        val currentTimeMs = System.currentTimeMillis()
+
+        Log.d("time",currentTimeMs.toString())
+
+        val taskTimeMs = currentTask.timeStart.toLong()
+        Log.d("time",taskTimeMs.toString())
+
+        var elapsedTimeMs = (currentTimeMs - taskTimeMs)
+        Log.d("time","elapsed: $elapsedTimeMs")
+
+        //displays elapsed time in days, hours, minutes, seconds
+        val test = String.format("%02d:%02d:%02d:%02d",
+            TimeUnit.MILLISECONDS.toDays(elapsedTimeMs),
+            TimeUnit.MILLISECONDS.toHours(elapsedTimeMs) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(elapsedTimeMs)),
+            TimeUnit.MILLISECONDS.toMinutes(elapsedTimeMs)- TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(elapsedTimeMs)),
+            TimeUnit.MILLISECONDS.toSeconds(elapsedTimeMs) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsedTimeMs)))
+        val elapsedTimeDisplay = "Elapsed Time: $test"
+
+        time_tv.text = elapsedTimeDisplay
+    }
+
+    @SuppressLint("NewApi")
     fun addTask(view:View){
         deleteTask() //remove previous task
+
         val category = categorySpinner.selectedItem.toString().toLowerCase()
         if(category == "random"){
             randomTaskAPI.getTask().enqueue(object : Callback<Task> {
@@ -112,6 +159,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onResponse: ${response.body()?.activity}")
                     val body = response.body()
 
+
                     if (body == null){
                         Log.w(TAG, "Valid response was not received")
                         return
@@ -119,7 +167,9 @@ class MainActivity : AppCompatActivity() {
 
                     task_tv.text = body.activity
                     currentTask = body
-                    addTaskToDatabase(body)
+                    currentTask.timeStart = System.currentTimeMillis().toString()
+                    currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
+                    addTaskToDatabase(currentTask)
                 }
             })
         }
@@ -142,7 +192,9 @@ class MainActivity : AppCompatActivity() {
 
                     task_tv.text = body.activity
                     currentTask = body
-                    addTaskToDatabase(body)
+                    currentTask.timeStart = System.currentTimeMillis().toString()
+                    currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
+                    addTaskToDatabase(currentTask)
                 }
             })
         }
@@ -167,9 +219,14 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    @SuppressLint("NewApi")
     fun saveCompletedTask(task:Task){
         // Get an instance of our collection
         val savedCTasks = fireBaseDb.collection("CompletedTasks")
+
+        val current = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val formatted = current.format(formatter)
 
         // Custom class is used to represent your document
         val newTask = Task(
@@ -182,7 +239,9 @@ class MainActivity : AppCompatActivity() {
             task.key,
             " ",
             FirebaseAuth.getInstance().currentUser!!.uid,
-            description_tv.text.toString()
+            description_tv.text.toString(),
+            task.timeStart,
+            formatted
         )
 
         // Get an auto generated id for a document that you want to insert
@@ -217,7 +276,6 @@ class MainActivity : AppCompatActivity() {
 
     //this function loads all of the active tasks for the logged in user
     fun loadUserData() {
-
         // Get data using addOnSuccessListener
         fireBaseDb.collection("Tasks")
             //.orderBy("id") //use this later to order the tasks by new to old
@@ -238,10 +296,14 @@ class MainActivity : AppCompatActivity() {
                             document.get("key").toString().toInt(),
                             document.get("image").toString(),
                             document.get("uid").toString(),
-                            document.get("description").toString()
+                            document.get("description").toString(),
+                            document.get("timeStart").toString(),
+                            document.get("timeEnd").toString()
                         )
                         task_tv.text = newTask.activity
                         currentTask = newTask
+                        displayElapsedTime()
+
                     }
                 }
             }
