@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    var currentTask = Task("","","","","","",0,"","","","","")
+    var currentTask = Task("","",0,"","","","","")
 
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
@@ -231,11 +231,7 @@ class MainActivity : AppCompatActivity() {
         // Custom class is used to represent your document
         val newTask = Task(
             task.activity,
-            task.accessibility,
             task.type,
-            task.participants,
-            task.price,
-            task.link,
             task.key,
             " ",
             FirebaseAuth.getInstance().currentUser!!.uid,
@@ -288,11 +284,7 @@ class MainActivity : AppCompatActivity() {
                     {
                         val newTask = Task(
                             document.get("activity").toString(),
-                            document.get("accessibility").toString(),
                             document.get("type").toString(),
-                            document.get("participants").toString(),
-                            document.get("price").toString(),
-                            document.get("link").toString(),
                             document.get("key").toString().toInt(),
                             document.get("image").toString(),
                             document.get("uid").toString(),

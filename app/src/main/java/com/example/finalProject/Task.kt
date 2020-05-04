@@ -11,11 +11,7 @@ data class TaskData(
 */
 data class Task(
     val activity: String,
-    val accessibility:String,
     val type: String,
-    val participants: String,
-    val price: String,
-    val link:String,
     val key: Int,
     var image: String? = null,
     var uid: String? = null,
