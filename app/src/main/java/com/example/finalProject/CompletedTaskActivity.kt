@@ -51,11 +51,7 @@ class CompletedTaskActivity : AppCompatActivity() {
                     {
                         val newTask = Task(
                             document.get("activity").toString(),
-                            document.get("accessibility").toString(),
                             document.get("type").toString(),
-                            document.get("participants").toString(),
-                            document.get("price").toString(),
-                            document.get("link").toString(),
                             document.get("key").toString().toInt(),
                             document.get("image").toString(),
                             document.get("uid").toString(),
