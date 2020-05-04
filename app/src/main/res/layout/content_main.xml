@@ -26,17 +26,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="64dp"
-        android:layout_marginBottom="13dp"
         android:onClick="addTask"
         android:text="Get task:"
         app:layout_constraintBottom_toTopOf="@+id/task_tv"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/taskTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/taskTitle"
+        app:layout_constraintVertical_bias="0.0" />
 
     <Spinner
         android:id="@+id/categorySpinner"
-        android:layout_width="184dp"
-        android:layout_height="44dp"
+        android:layout_width="167dp"
+        android:layout_height="48dp"
         android:entries="@array/spinnerItems"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -59,15 +59,18 @@
 
     <ImageView
         android:id="@+id/image_view"
-        android:layout_width="303dp"
-        android:layout_height="265dp"
+        android:layout_width="256dp"
+        android:layout_height="206dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="104dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_image_black_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/description_tv"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.686" />
 
     <Button
         android:id="@+id/completeTaskBtn"
@@ -86,10 +89,10 @@
         android:id="@+id/task_tv"
         android:layout_width="352dp"
         android:layout_height="78dp"
-        android:layout_marginTop="16dp"
-        android:text="Task"
+        android:text="Press button to get a task"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.542"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/categorySpinner" />
 
@@ -97,12 +100,24 @@
         android:id="@+id/description_tv"
         android:layout_width="350dp"
         android:layout_height="114dp"
+        android:layout_marginTop="48dp"
         android:ems="10"
         android:gravity="start|top"
         android:hint="Enter a description about your completed tasks here (optional)"
         android:inputType="textMultiLine"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.491"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/time_tv" />
+
+    <TextView
+        android:id="@+id/time_tv"
+        android:layout_width="351dp"
+        android:layout_height="33dp"
+        android:text="Elapsed Time:"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.533"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/task_tv" />
 

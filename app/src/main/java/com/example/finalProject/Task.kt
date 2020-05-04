@@ -1,6 +1,9 @@
 package com.example.finalProject
 
 import com.google.gson.annotations.SerializedName
+import java.sql.Time
+import java.sql.Timestamp
+
 /*
 data class TaskData(
     val results: List<Task>
@@ -14,9 +17,11 @@ data class Task(
     val price: String,
     val link:String,
     val key: Int,
-    val image: String? = null,
-    val uid: String? = null,
-    val description: String
+    var image: String? = null,
+    var uid: String? = null,
+    var description: String,
+    var timeStart: String,
+    var timeEnd: String
 )
 
 
