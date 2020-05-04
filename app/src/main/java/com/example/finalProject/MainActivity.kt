@@ -4,12 +4,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,9 +18,10 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,20 +35,13 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import dmax.dialog.SpotsDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.android.synthetic.main.content_main.completeTaskBtn
-import kotlinx.android.synthetic.main.content_main.categorySpinner
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
-import java.security.Timestamp
-import java.sql.Time
-import java.text.DateFormat
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -63,6 +57,8 @@ class MainActivity : AppCompatActivity() {
     private val PERMISSION_PICK_IMAGE = 1001
     internal var filePath: Uri? = null
 
+
+    var imageID: String? = null
     //Dialog
     lateinit var dialog: AlertDialog
 
@@ -82,11 +78,19 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         storage = FirebaseStorage.getInstance()
         storageReference = storage.reference
         dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
+
         val clickable_imageview = findViewById<ImageView>(R.id.image_view)
 
+        findViewById<View>(R.id.contentLayout).setOnTouchListener { v, event ->
+            val imm =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+            true
+        }
         clickable_imageview.setOnClickListener{
             showDialog()
         }
@@ -94,7 +98,6 @@ class MainActivity : AppCompatActivity() {
         completeTaskBtn.setOnClickListener {
             uploadImage()
             saveCompletedTask(currentTask)
-            playSound()
         }
 
         setSupportActionBar(toolbar)
@@ -221,19 +224,26 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("NewApi")
     fun saveCompletedTask(task:Task){
-        // Get an instance of our collection
+        // Get an instance of our collection=
         val savedCTasks = fireBaseDb.collection("CompletedTasks")
 
         val current = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val formatted = current.format(formatter)
 
+        var imageReference: String? =null
+        val imageRef = storageReference!!.child("images/" + imageID)
+        imageRef.downloadUrl.addOnSuccessListener { result ->
+            Log.d("Get url successfully", result.path)
+            imageReference = result.path.toString()
+
+        }
         // Custom class is used to represent your document
         val newTask = Task(
             task.activity,
             task.type,
             task.key,
-            " ",
+            imageRef.path,
             FirebaseAuth.getInstance().currentUser!!.uid,
             description_tv.text.toString(),
             task.timeStart,
@@ -295,7 +305,6 @@ class MainActivity : AppCompatActivity() {
                         task_tv.text = newTask.activity
                         currentTask = newTask
                         displayElapsedTime()
-
                     }
                 }
             }
@@ -312,12 +321,14 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
+    //Adds item to the menu bar
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
+    //THis logs user out/action bar
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -347,19 +358,20 @@ class MainActivity : AppCompatActivity() {
     }
     //Upload image to the firebase storage
     private fun uploadImage() {
-        if (filePath != null){
-            dialog.show()
-            val reference = storageReference.child("images/" + UUID.randomUUID().toString())
-            reference.putFile(filePath!!).addOnSuccessListener { taskSnapshot ->
-                dialog.dismiss()
-                Toast.makeText(this@MainActivity, "Uploaded!", Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener{e ->
-                dialog.dismiss()
-                Toast.makeText(this@MainActivity, "Failed!", Toast.LENGTH_SHORT).show()
-            }.addOnProgressListener {taskSnapshot ->
-                val progress = 100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount
-                dialog.setMessage("Uploaded $progress")
-            }
+        if (filePath != null)
+        {
+            val progressDialog = ProgressDialog(this)
+            progressDialog.setTitle("Uploading...")
+            progressDialog.show()
+
+            imageID = UUID.randomUUID().toString()
+            val imageRef = storageReference!!.child("images/" + imageID)
+
+            imageRef.putFile(filePath!!)
+                .addOnSuccessListener {
+                    progressDialog.dismiss()
+                    Toast.makeText(applicationContext, "File Uploaded", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 
@@ -414,6 +426,7 @@ class MainActivity : AppCompatActivity() {
         }).check()
     }
 
+
     //this sets the image to the image view
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -444,6 +457,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //Shows dialog when use press on the imageview
     private fun showDialog() {
         // Create an alertdialog builder object,
         // then set attributes that you want the dialog to have
@@ -463,6 +477,7 @@ class MainActivity : AppCompatActivity() {
         builder.setNeutralButton("No picture"){dialog, which ->
             //set default pic here
             //maybe random cat pic?
+            playSound()
         }
         // create the dialog and show it
         val dialog = builder.create()
