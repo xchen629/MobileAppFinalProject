@@ -8,6 +8,7 @@ import android.app.ProgressDialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.Image
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
@@ -22,6 +23,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -32,9 +35,13 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.koushikdutta.ion.Ion
 import dmax.dialog.SpotsDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.content_main.completeTaskBtn
+import kotlinx.android.synthetic.main.content_main.categorySpinner
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -46,12 +53,11 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
     var currentTask = Task("","",0,"","","","","")
-
+    var emptyTask = Task("","",0,"","","","","")
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
     private val PERMISSION_PICK_IMAGE = 1001
@@ -67,13 +73,18 @@ class MainActivity : AppCompatActivity() {
     lateinit var storageReference: StorageReference
 
     var playSound : MediaPlayer? = null
-    private val BASE_URL = "https://www.boredapi.com/api/activity/"
 
+    //bored api for generating tasks
+    private val BASE_URL = "https://www.boredapi.com/api/activity/"
     val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     val randomTaskAPI = retrofit.create(RandomTaskService::class.java)
+
+    //Cat pic api
+    private val CAT_URL = "https://api.thecatapi.com/v1/images/search?mime_types=jpg,png"
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,8 +107,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         completeTaskBtn.setOnClickListener {
-            uploadImage()
-            saveCompletedTask(currentTask)
+            if(currentTask == emptyTask){
+                Toast.makeText(this,"You don't have a task!",Toast.LENGTH_SHORT).show()
+            }
+            else{
+                uploadImage()
+                saveCompletedTask(currentTask)
+                playSound()
+            }
         }
 
         setSupportActionBar(toolbar)
@@ -256,6 +273,7 @@ class MainActivity : AppCompatActivity() {
         // Add data
         savedCTasks.document(id).set(newTask)
         deleteTask()
+        currentTask = emptyTask
         val newText = "Press button to get new task"
         task_tv.text = newText
         description_tv.text.clear()
@@ -474,16 +492,40 @@ class MainActivity : AppCompatActivity() {
             chooseImage()
         }
         //Play the sound if user choose this button
-        builder.setNeutralButton("No picture"){dialog, which ->
+        builder.setNeutralButton("Random Cat Picture"){dialog, which ->
             //set default pic here
-            //maybe random cat pic?
-            playSound()
+            downloadCatImage()
+
         }
         // create the dialog and show it
         val dialog = builder.create()
         dialog.show()
     }
 
+    fun downloadCatImage() {
+        // Download the data from the specified URL
+        Ion.with(this)
+            .load(CAT_URL)
+            .asString()
+            .setCallback { e, result ->
+                Log.d(TAG, "The received data : $result")
+                // Helper function to parse/process data
+                parseCatImageData(result)
+            }
+    }
+
+    private fun parseCatImageData(result: String){
+        // Extract the information from JSON data
+        //[{"breeds":[],"categories":[{"id":1,"name":"hats"}],"id":"7fq","url":"https://cdn2.thecatapi.com/images/7fq.jpg","width":1024,"height":576}]
+        val data = JSONObject(result.removePrefix("[").removeSuffix("]"))
+        val img = data.getString("url")
+        Log.d(TAG, "The received data : $img")
+        filePath= Uri.parse(img)
+
+        // Display the image using Ion library, alternatively picasso library can be used
+        Ion.with(image_view)
+            .load(img)
+    }
     //function that plays the sound
     private fun playSound() {
         if (playSound == null){
