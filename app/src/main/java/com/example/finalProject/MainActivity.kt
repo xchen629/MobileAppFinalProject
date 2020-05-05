@@ -8,12 +8,9 @@ import android.app.ProgressDialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.media.Image
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
@@ -23,9 +20,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.annotation.RequiresApi
-import androidx.core.graphics.drawable.toDrawable
-import androidx.core.net.toUri
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -49,7 +43,6 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
-import java.net.URI
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -286,7 +279,7 @@ class MainActivity : AppCompatActivity() {
         val newText = "Press button to get new task"
         task_tv.text = newText
         description_tv.text.clear()
-        image_view.setImageResource(R.mipmap.ad)
+        image_view.setImageResource(R.drawable.add_image)
     }
 
     fun launchCompletedTaskActivity(view: View) {
