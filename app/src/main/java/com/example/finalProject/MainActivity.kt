@@ -24,6 +24,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.annotation.RequiresApi
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
@@ -48,6 +49,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
+import java.net.URI
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -56,8 +58,8 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    var currentTask = Task("","",0,"","","","","")
-    var emptyTask = Task("","",0,"","","","","")
+    var currentTask = Task("","",0,null,"","","","")
+    var emptyTask = Task("","",0,null,"","","","")
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
     private val PERMISSION_PICK_IMAGE = 1001
@@ -89,56 +91,71 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        storage = FirebaseStorage.getInstance()
-        storageReference = storage.reference
-        dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
-
-        val clickable_imageview = findViewById<ImageView>(R.id.image_view)
-
-        findViewById<View>(R.id.contentLayout).setOnTouchListener { v, event ->
-            val imm =
-                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
-            true
-        }
-        clickable_imageview.setOnClickListener{
-            showDialog()
-        }
-
-        completeTaskBtn.setOnClickListener {
-            if(currentTask == emptyTask){
-                Toast.makeText(this,"You don't have a task!",Toast.LENGTH_SHORT).show()
-            }
-            else{
-                uploadImage()
-                saveCompletedTask(currentTask)
-                playSound()
-            }
-        }
-
-        setSupportActionBar(toolbar)
-
-        // Get a Cloud Firestore instance
-        fireBaseDb = FirebaseFirestore.getInstance()
-        loadUserData()
-        Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
-
-
-      val mainHandler = Handler(Looper.getMainLooper())
-        mainHandler.post(object : Runnable {
-            override fun run() {
-                loadUserData() //not ideal, instead should be calling //displayElapsedTime()
-                mainHandler.postDelayed(this, 1000)
-            }
-        })
-
         // #### Authentication using FirebaseAuth #####
         // If currentUser is null, open the RegisterActivity
         if (FirebaseAuth.getInstance().currentUser == null){
-           startRegisterActivity()
+            startRegisterActivity()
+        }
+        else{
+            storage = FirebaseStorage.getInstance()
+            storageReference = storage.reference
+            dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
+
+            val clickable_imageview = findViewById<ImageView>(R.id.image_view)
+
+            findViewById<View>(R.id.contentLayout).setOnTouchListener { v, event ->
+                val imm =
+                    getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+                true
+            }
+            clickable_imageview.setOnClickListener{
+                showDialog()
+            }
+
+            completeTaskBtn.setOnClickListener {
+                if(currentTask == emptyTask){
+                    Toast.makeText(this,"You don't have a task!",Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    if(currentTask.image == null || currentTask.image.equals("null")){
+                        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+                        builder.setTitle("Image Required")
+                        builder.setMessage("Tap on the image to choose a picture to go along with your completed task before uploading")
+                        // create the dialog and show it
+                        val dialog = builder.create()
+                        dialog.show()
+                    }
+                    else{
+                        if (filePath != null){
+                            uploadImage() //camera or gallery
+                        }
+                        else{
+                            saveCompletedTask(currentTask, Uri.parse(currentTask.image)) //cat pic
+                        }
+                        playSound()
+                    }
+
+                }
+            }
+
+            Thread{
+                while(true){
+                    Thread.sleep(1000)
+                    if(currentTask.timeStart != ""){
+                        displayElapsedTime()
+                    }
+                }
+            }.start()
+            setSupportActionBar(toolbar)
+
+            // Get a Cloud Firestore instance
+            fireBaseDb = FirebaseFirestore.getInstance()
+            loadUserData()
+            Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
         }
     }
+
 
     @SuppressLint("NewApi")
     fun displayElapsedTime(){
@@ -240,7 +257,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("NewApi")
-    fun saveCompletedTask(task:Task){
+    fun saveCompletedTask(task:Task, uri: Uri){
         // Get an instance of our collection=
         val savedCTasks = fireBaseDb.collection("CompletedTasks")
 
@@ -248,25 +265,17 @@ class MainActivity : AppCompatActivity() {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val formatted = current.format(formatter)
 
-        var imageReference: String? =null
-        val imageRef = storageReference!!.child("images/" + imageID)
-        imageRef.downloadUrl.addOnSuccessListener { result ->
-            Log.d("Get url successfully", result.path)
-            imageReference = result.path.toString()
-
-        }
         // Custom class is used to represent your document
         val newTask = Task(
             task.activity,
             task.type,
             task.key,
-            imageRef.path,
+            uri.toString(),
             FirebaseAuth.getInstance().currentUser!!.uid,
             description_tv.text.toString(),
             task.timeStart,
             formatted
         )
-
         // Get an auto generated id for a document that you want to insert
         val id = savedCTasks.document().id
 
@@ -277,6 +286,7 @@ class MainActivity : AppCompatActivity() {
         val newText = "Press button to get new task"
         task_tv.text = newText
         description_tv.text.clear()
+        image_view.setImageResource(R.mipmap.ad)
     }
 
     fun launchCompletedTaskActivity(view: View) {
@@ -378,6 +388,7 @@ class MainActivity : AppCompatActivity() {
     private fun uploadImage() {
         if (filePath != null)
         {
+            Log.d("filepath",filePath.toString())
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle("Uploading...")
             progressDialog.show()
@@ -389,6 +400,7 @@ class MainActivity : AppCompatActivity() {
                 .addOnSuccessListener {
                     progressDialog.dismiss()
                     Toast.makeText(applicationContext, "File Uploaded", Toast.LENGTH_SHORT).show()
+                    getImageUrl(imageRef)
                 }
         }
     }
@@ -457,6 +469,7 @@ class MainActivity : AppCompatActivity() {
                             val bitmap =
                                 MediaStore.Images.Media.getBitmap(contentResolver, filePath)
                             image_view.setImageBitmap(bitmap)
+                            currentTask.image=filePath.toString()
                         } catch (e: IOException) {
                             e.printStackTrace()
                         }
@@ -467,6 +480,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filePath)
                     image_view.setImageBitmap(bitmap)
+                    currentTask.image=filePath.toString()
                 }
                 catch (e: IOException) {
                     e.printStackTrace()
@@ -520,7 +534,8 @@ class MainActivity : AppCompatActivity() {
         val data = JSONObject(result.removePrefix("[").removeSuffix("]"))
         val img = data.getString("url")
         Log.d(TAG, "The received data : $img")
-        filePath= Uri.parse(img)
+        currentTask.image = img
+        filePath = null
 
         // Display the image using Ion library, alternatively picasso library can be used
         Ion.with(image_view)
@@ -532,5 +547,12 @@ class MainActivity : AppCompatActivity() {
             playSound = MediaPlayer.create(this, R.raw.song)
         }
         playSound?.start()
+    }
+
+    fun getImageUrl(imageRef: StorageReference){
+        imageRef.downloadUrl.addOnSuccessListener { uri ->
+            Log.d("uri", uri.toString())
+            saveCompletedTask(currentTask, uri)
+        }
     }
 }
