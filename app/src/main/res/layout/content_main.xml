@@ -5,6 +5,7 @@
     android:id="@+id/contentLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:scrollbarTrackVertical="@drawable/add_image"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
     tools:showIn="@layout/activity_main">
@@ -63,14 +64,17 @@
         android:layout_height="206dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="104dp"
+        android:background="#FFFFFF"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_image_black_24dp"
+        android:src="@drawable/add_image"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/description_tv"
-        app:layout_constraintVertical_bias="0.686" />
+        app:layout_constraintVertical_bias="0.686"
+        app:srcCompat="@drawable/add_image"
+        tools:srcCompat="@drawable/add_image" />
 
     <Button
         android:id="@+id/completeTaskBtn"

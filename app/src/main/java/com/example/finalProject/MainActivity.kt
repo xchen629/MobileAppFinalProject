@@ -11,8 +11,6 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
@@ -32,9 +30,13 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.koushikdutta.ion.Ion
 import dmax.dialog.SpotsDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.content_main.completeTaskBtn
+import kotlinx.android.synthetic.main.content_main.categorySpinner
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -46,12 +48,11 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    var currentTask = Task("","",0,"","","","","")
-
+    var currentTask = Task("","",0,null,"","","","")
+    var emptyTask = Task("","",0,null,"","","","")
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
     private val PERMISSION_PICK_IMAGE = 1001
@@ -67,61 +68,87 @@ class MainActivity : AppCompatActivity() {
     lateinit var storageReference: StorageReference
 
     var playSound : MediaPlayer? = null
-    private val BASE_URL = "https://www.boredapi.com/api/activity/"
 
+    //bored api for generating tasks
+    private val BASE_URL = "https://www.boredapi.com/api/activity/"
     val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     val randomTaskAPI = retrofit.create(RandomTaskService::class.java)
 
+    //Cat pic api
+    private val CAT_URL = "https://api.thecatapi.com/v1/images/search?mime_types=jpg,png"
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        storage = FirebaseStorage.getInstance()
-        storageReference = storage.reference
-        dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
-
-        val clickable_imageview = findViewById<ImageView>(R.id.image_view)
-
-        findViewById<View>(R.id.contentLayout).setOnTouchListener { v, event ->
-            val imm =
-                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
-            true
-        }
-        clickable_imageview.setOnClickListener{
-            showDialog()
-        }
-
-        completeTaskBtn.setOnClickListener {
-            uploadImage()
-            //saveCompletedTask(currentTask)
-        }
-
-        setSupportActionBar(toolbar)
-
-        // Get a Cloud Firestore instance
-        fireBaseDb = FirebaseFirestore.getInstance()
-        loadUserData()
-        Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
-
-
-      val mainHandler = Handler(Looper.getMainLooper())
-        mainHandler.post(object : Runnable {
-            override fun run() {
-                loadUserData() //not ideal, instead should be calling //displayElapsedTime()
-                mainHandler.postDelayed(this, 1000)
-            }
-        })
-
         // #### Authentication using FirebaseAuth #####
         // If currentUser is null, open the RegisterActivity
         if (FirebaseAuth.getInstance().currentUser == null){
-           startRegisterActivity()
+            startRegisterActivity()
+        }
+        else{
+            storage = FirebaseStorage.getInstance()
+            storageReference = storage.reference
+            dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
+
+            val clickable_imageview = findViewById<ImageView>(R.id.image_view)
+
+            findViewById<View>(R.id.contentLayout).setOnTouchListener { v, event ->
+                val imm =
+                    getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+                true
+            }
+            clickable_imageview.setOnClickListener{
+                showDialog()
+            }
+
+            completeTaskBtn.setOnClickListener {
+                if(currentTask == emptyTask){
+                    Toast.makeText(this,"You don't have a task!",Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    if(currentTask.image == null || currentTask.image.equals("null")){
+                        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+                        builder.setTitle("Image Required")
+                        builder.setMessage("Tap on the image to choose a picture to go along with your completed task before uploading")
+                        // create the dialog and show it
+                        val dialog = builder.create()
+                        dialog.show()
+                    }
+                    else{
+                        if (filePath != null){
+                            uploadImage() //camera or gallery
+                        }
+                        else{
+                            saveCompletedTask(currentTask, Uri.parse(currentTask.image)) //cat pic
+                        }
+                        playSound()
+                    }
+
+                }
+            }
+
+            Thread{
+                while(true){
+                    Thread.sleep(1000)
+                    if(currentTask.timeStart != ""){
+                        displayElapsedTime()
+                    }
+                }
+            }.start()
+            setSupportActionBar(toolbar)
+
+            // Get a Cloud Firestore instance
+            fireBaseDb = FirebaseFirestore.getInstance()
+            loadUserData()
+            Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
         }
     }
+
 
     @SuppressLint("NewApi")
     fun displayElapsedTime(){
@@ -231,7 +258,6 @@ class MainActivity : AppCompatActivity() {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val formatted = current.format(formatter)
 
-
         // Custom class is used to represent your document
         val newTask = Task(
             task.activity,
@@ -243,16 +269,17 @@ class MainActivity : AppCompatActivity() {
             task.timeStart,
             formatted
         )
-
         // Get an auto generated id for a document that you want to insert
         val id = savedCTasks.document().id
 
         // Add data
         savedCTasks.document(id).set(newTask)
         deleteTask()
+        currentTask = emptyTask
         val newText = "Press button to get new task"
         task_tv.text = newText
         description_tv.text.clear()
+        image_view.setImageResource(R.drawable.add_image)
     }
 
     fun launchCompletedTaskActivity(view: View) {
@@ -354,6 +381,7 @@ class MainActivity : AppCompatActivity() {
     private fun uploadImage() {
         if (filePath != null)
         {
+            Log.d("filepath",filePath.toString())
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle("Uploading...")
             progressDialog.show()
@@ -434,6 +462,7 @@ class MainActivity : AppCompatActivity() {
                             val bitmap =
                                 MediaStore.Images.Media.getBitmap(contentResolver, filePath)
                             image_view.setImageBitmap(bitmap)
+                            currentTask.image=filePath.toString()
                         } catch (e: IOException) {
                             e.printStackTrace()
                         }
@@ -444,6 +473,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filePath)
                     image_view.setImageBitmap(bitmap)
+                    currentTask.image=filePath.toString()
                 }
                 catch (e: IOException) {
                     e.printStackTrace()
@@ -469,16 +499,41 @@ class MainActivity : AppCompatActivity() {
             chooseImage()
         }
         //Play the sound if user choose this button
-        builder.setNeutralButton("No picture"){dialog, which ->
+        builder.setNeutralButton("Random Cat Picture"){dialog, which ->
             //set default pic here
-            //maybe random cat pic?
-            playSound()
+            downloadCatImage()
+
         }
         // create the dialog and show it
         val dialog = builder.create()
         dialog.show()
     }
 
+    fun downloadCatImage() {
+        // Download the data from the specified URL
+        Ion.with(this)
+            .load(CAT_URL)
+            .asString()
+            .setCallback { e, result ->
+                Log.d(TAG, "The received data : $result")
+                // Helper function to parse/process data
+                parseCatImageData(result)
+            }
+    }
+
+    private fun parseCatImageData(result: String){
+        // Extract the information from JSON data
+        //[{"breeds":[],"categories":[{"id":1,"name":"hats"}],"id":"7fq","url":"https://cdn2.thecatapi.com/images/7fq.jpg","width":1024,"height":576}]
+        val data = JSONObject(result.removePrefix("[").removeSuffix("]"))
+        val img = data.getString("url")
+        Log.d(TAG, "The received data : $img")
+        currentTask.image = img
+        filePath = null
+
+        // Display the image using Ion library, alternatively picasso library can be used
+        Ion.with(image_view)
+            .load(img)
+    }
     //function that plays the sound
     private fun playSound() {
         if (playSound == null){
@@ -491,7 +546,6 @@ class MainActivity : AppCompatActivity() {
         imageRef.downloadUrl.addOnSuccessListener { uri ->
             Log.d("uri", uri.toString())
             saveCompletedTask(currentTask, uri)
-
         }
     }
 }
