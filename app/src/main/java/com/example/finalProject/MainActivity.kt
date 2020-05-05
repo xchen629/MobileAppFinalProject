@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 
         completeTaskBtn.setOnClickListener {
             uploadImage()
-            saveCompletedTask(currentTask)
+            //saveCompletedTask(currentTask)
         }
 
         setSupportActionBar(toolbar)
@@ -223,7 +223,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("NewApi")
-    fun saveCompletedTask(task:Task){
+    fun saveCompletedTask(task:Task, uri: Uri){
         // Get an instance of our collection=
         val savedCTasks = fireBaseDb.collection("CompletedTasks")
 
@@ -231,19 +231,13 @@ class MainActivity : AppCompatActivity() {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val formatted = current.format(formatter)
 
-        var imageReference: String? =null
-        val imageRef = storageReference!!.child("images/" + imageID)
-        imageRef.downloadUrl.addOnSuccessListener { result ->
-            Log.d("Get url successfully", result.path)
-            imageReference = result.path.toString()
 
-        }
         // Custom class is used to represent your document
         val newTask = Task(
             task.activity,
             task.type,
             task.key,
-            imageRef.path,
+            uri.toString(),
             FirebaseAuth.getInstance().currentUser!!.uid,
             description_tv.text.toString(),
             task.timeStart,
@@ -371,6 +365,7 @@ class MainActivity : AppCompatActivity() {
                 .addOnSuccessListener {
                     progressDialog.dismiss()
                     Toast.makeText(applicationContext, "File Uploaded", Toast.LENGTH_SHORT).show()
+                    getImageUrl(imageRef)
                 }
         }
     }
@@ -490,5 +485,13 @@ class MainActivity : AppCompatActivity() {
             playSound = MediaPlayer.create(this, R.raw.song)
         }
         playSound?.start()
+    }
+
+    fun getImageUrl(imageRef: StorageReference){
+        imageRef.downloadUrl.addOnSuccessListener { uri ->
+            Log.d("uri", uri.toString())
+            saveCompletedTask(currentTask, uri)
+
+        }
     }
 }

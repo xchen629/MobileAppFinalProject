@@ -6,9 +6,7 @@ import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_completed_task.*
-import kotlinx.android.synthetic.main.row_item.*
 
 class CompletedTaskActivity : AppCompatActivity() {
 

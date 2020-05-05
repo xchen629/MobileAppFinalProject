@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.row_item.view.*
 
 class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<CompletedTasksAdapter.MyViewHolder>() {
@@ -24,7 +25,7 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // - replace the contents of the view with that element
         val currentItem = tasks[position]
         holder.activityName.text = currentItem.activity
-
+        Picasso.get().load(currentItem.image.toString()).into(holder.imagename)
     }
 
     override fun getItemCount(): Int {
@@ -37,6 +38,7 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // This class also allows caching views and reuse them
         // Each MyViewHolder object keeps a reference to 3 view items in our row_item.xml file
         val activityName = itemView.tv_name
+        val imagename = itemView.image_profile
 
         // Set onClickListener to show a toast message for the selected row item in the list
         init {
