@@ -15,7 +15,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".CompletedTaskActivity"></activity>
-        <activity android:name=".ButtonAndPhoto" />
         <activity android:name=".RegisterActivity" />
         <activity
             android:name=".MainActivity"
@@ -27,7 +26,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".taskActivity" />
     </application>
 
 </manifest>

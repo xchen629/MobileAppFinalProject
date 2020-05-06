@@ -1,15 +1,22 @@
 package com.example.finalProject
 
 import android.app.AlertDialog
+import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.row_item.view.*
+import kotlin.coroutines.coroutineContext
 
 class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.Adapter<CompletedTasksAdapter.MyViewHolder>() {
     private var fireBaseDb: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -25,7 +32,7 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // - replace the contents of the view with that element
         val currentItem = tasks[position]
         holder.activityName.text = currentItem.activity
-        Picasso.get().load(currentItem.image.toString()).into(holder.imagename)
+        Glide.with(holder.itemView.context).load(currentItem.image.toString()).apply(RequestOptions().transforms(CenterCrop(), RoundedCorners(20))).into(holder.imagename)
     }
 
     override fun getItemCount(): Int {
@@ -42,7 +49,7 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
 
         // Set onClickListener to show a toast message for the selected row item in the list
         init {
-            itemView.setOnClickListener {
+           itemView.setOnClickListener {
                 val selectedItem = adapterPosition
                 showDescriptionDialog(itemView,selectedItem)
             }
@@ -94,8 +101,6 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         val dialog = builder.create()
         dialog.show()
     }
-
-
 
     fun deleteTask(key: Int) {
         Log.d("adapter", key.toString())
