@@ -26,6 +26,8 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         val currentItem = tasks[position]
         holder.activityName.text = currentItem.activity
         Picasso.get().load(currentItem.image.toString()).into(holder.imagename)
+        holder.category.text = currentItem.type
+        holder.completeDate.text = currentItem.timeEnd
     }
 
     override fun getItemCount(): Int {
@@ -39,6 +41,8 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // Each MyViewHolder object keeps a reference to 3 view items in our row_item.xml file
         val activityName = itemView.tv_name
         val imagename = itemView.image_profile
+        val category = itemView.tv_category
+        val completeDate = itemView.tv_date
 
         // Set onClickListener to show a toast message for the selected row item in the list
         init {

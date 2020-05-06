@@ -32,8 +32,7 @@ class CompletedTaskActivity : AppCompatActivity() {
 
         // Get data using addOnSuccessListener
         fireBaseDb.collection("CompletedTasks")
-            //.orderBy("id") //use this later to order the tasks by new to old
-            //.orderBy("id", Query.Direction.DESCENDING)
+            .orderBy("timeEnd") //displays tasks by newest on top
             .get()
             .addOnSuccessListener { documents ->
                 // The result (documents) contains all the records in db, each of them is a document
@@ -48,7 +47,8 @@ class CompletedTaskActivity : AppCompatActivity() {
                             document.get("uid").toString(),
                             document.get("description").toString(),
                             document.get("timeStart").toString(),
-                            document.get("timeEnd").toString()
+                            document.get("timeEnd").toString(),
+                            document.get("public").toString().toInt()
                         )
                         // Update the adapter with the new data
                         taskList.add(0,newTask)

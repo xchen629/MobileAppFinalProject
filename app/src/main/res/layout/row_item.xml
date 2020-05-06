@@ -22,31 +22,39 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        app:layout_constraintBottom_toTopOf="@+id/tv_email"
+        app:layout_constraintBottom_toTopOf="@+id/tv_category"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/image_profile"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="John Doe" />
+        app:layout_constraintVertical_bias="0.39"
+        tools:text="Activity Name" />
 
     <TextView
-        android:id="@+id/tv_email"
+        android:id="@+id/tv_category"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        app:layout_constraintBottom_toTopOf="@+id/tv_gender"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/tv_category"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/tv_name"
         app:layout_constraintTop_toBottomOf="@+id/tv_name"
-        tools:text="john.doe@gmail.com" />
+        tools:text="Category:" />
 
     <TextView
-        android:id="@+id/tv_gender"
+        android:id="@+id/tv_date"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/tv_email"
-        app:layout_constraintTop_toBottomOf="@+id/tv_email"
-        tools:text="Male" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/tv_category"
+        app:layout_constraintTop_toBottomOf="@+id/tv_category"
+        app:layout_constraintVertical_bias="0.111"
+        tools:text="Completion Date:" />
 </androidx.constraintlayout.widget.ConstraintLayout>
