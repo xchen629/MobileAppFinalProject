@@ -8,8 +8,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/completedTasks_rv"
-        android:layout_width="329dp"
-        android:layout_height="508dp"
+        android:layout_width="406dp"
+        android:layout_height="556dp"
         android:layout_marginStart="1dp"
         android:layout_marginEnd="1dp"
         android:layout_marginBottom="1dp"
@@ -24,7 +24,7 @@
         android:id="@+id/compledTasks_tv"
         android:layout_width="355dp"
         android:layout_height="68dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="24dp"
         android:text="These are your completed tasks, tap to view description or hold down on the task if you want to delete it"
         android:textAlignment="center"
         android:textSize="18sp"

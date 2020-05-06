@@ -51,8 +51,8 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    var currentTask = Task("","",0,null,"","","","")
-    var emptyTask = Task("","",0,null,"","","","")
+    var currentTask = Task("","",0,null,"","","","",0)
+    var emptyTask = Task("","",0,null,"","","","",0)
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
     private val PERMISSION_PICK_IMAGE = 1001
@@ -103,30 +103,19 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             clickable_imageview.setOnClickListener{
-                showDialog()
+                showImageDialog()
             }
 
             completeTaskBtn.setOnClickListener {
                 if(currentTask == emptyTask){
-                    Toast.makeText(this,"You don't have a task!",Toast.LENGTH_SHORT).show()
+                    createDialog("You don't have a task!","Press the button above to generate a new task.")
                 }
                 else{
                     if(currentTask.image == null || currentTask.image.equals("null")){
-                        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-                        builder.setTitle("Image Required")
-                        builder.setMessage("Tap on the image to choose a picture to go along with your completed task before uploading")
-                        // create the dialog and show it
-                        val dialog = builder.create()
-                        dialog.show()
+                        createDialog("Image Required","Tap on the image to choose a picture to go along with your completed task before uploading.")
                     }
                     else{
-                        if (filePath != null){
-                            uploadImage() //camera or gallery
-                        }
-                        else{
-                            saveCompletedTask(currentTask, Uri.parse(currentTask.image)) //cat pic
-                        }
-                        playSound()
+                        makePublicDialog()
                     }
 
                 }
@@ -200,6 +189,8 @@ class MainActivity : AppCompatActivity() {
                     currentTask.timeStart = System.currentTimeMillis().toString()
                     currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
                     addTaskToDatabase(currentTask)
+                    description_tv.text.clear()
+                    image_view.setImageResource(R.drawable.add_image)
                 }
             })
         }
@@ -225,6 +216,8 @@ class MainActivity : AppCompatActivity() {
                     currentTask.timeStart = System.currentTimeMillis().toString()
                     currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
                     addTaskToDatabase(currentTask)
+                    description_tv.text.clear()
+                    image_view.setImageResource(R.drawable.add_image)
                 }
             })
         }
@@ -255,7 +248,7 @@ class MainActivity : AppCompatActivity() {
         val savedCTasks = fireBaseDb.collection("CompletedTasks")
 
         val current = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val formatter = DateTimeFormatter.ofPattern("HH:mm MMMM dd, yyyy")
         val formatted = current.format(formatter)
 
         // Custom class is used to represent your document
@@ -267,7 +260,8 @@ class MainActivity : AppCompatActivity() {
             FirebaseAuth.getInstance().currentUser!!.uid,
             description_tv.text.toString(),
             task.timeStart,
-            formatted
+            formatted,
+            task.public
         )
         // Get an auto generated id for a document that you want to insert
         val id = savedCTasks.document().id
@@ -321,7 +315,8 @@ class MainActivity : AppCompatActivity() {
                             document.get("uid").toString(),
                             document.get("description").toString(),
                             document.get("timeStart").toString(),
-                            document.get("timeEnd").toString()
+                            document.get("timeEnd").toString(),
+                            document.get("public").toString().toInt()
                         )
                         task_tv.text = newTask.activity
                         currentTask = newTask
@@ -483,7 +478,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     //Shows dialog when use press on the imageview
-    private fun showDialog() {
+    private fun showImageDialog() {
         // Create an alertdialog builder object,
         // then set attributes that you want the dialog to have
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
@@ -534,6 +529,7 @@ class MainActivity : AppCompatActivity() {
         Ion.with(image_view)
             .load(img)
     }
+
     //function that plays the sound
     private fun playSound() {
         if (playSound == null){
@@ -547,5 +543,43 @@ class MainActivity : AppCompatActivity() {
             Log.d("uri", uri.toString())
             saveCompletedTask(currentTask, uri)
         }
+    }
+
+    fun createDialog(title:String, message:String){
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle(title)
+        builder.setMessage(message)
+        // create the dialog and show it
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    fun makePublicDialog(){
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Would you like to make your task public?")
+        builder.setMessage("This will display your task, picture, and description in a feed displayed to all users.")
+
+        builder.setPositiveButton("Yes"){ dialog, which ->
+            currentTask.public = 1
+            taskComplete()
+        }
+        builder.setNegativeButton("No"){dialog, which ->
+            currentTask.public = 0
+            taskComplete()
+        }
+
+        // create the dialog and show it
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    fun taskComplete(){
+        if (filePath != null){
+            uploadImage() //camera or gallery
+        }
+        else{
+            saveCompletedTask(currentTask, Uri.parse(currentTask.image)) //cat pic
+        }
+        playSound()
     }
 }

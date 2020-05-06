@@ -17,7 +17,8 @@ data class Task(
     var uid: String? = null,
     var description: String,
     var timeStart: String,
-    var timeEnd: String
+    var timeEnd: String,
+    var public: Int
 )
 
 

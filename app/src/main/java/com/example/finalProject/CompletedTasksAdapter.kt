@@ -32,7 +32,11 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // - replace the contents of the view with that element
         val currentItem = tasks[position]
         holder.activityName.text = currentItem.activity
+
         Glide.with(holder.itemView.context).load(currentItem.image.toString()).apply(RequestOptions().transforms(CenterCrop(), RoundedCorners(20))).into(holder.imagename)
+        holder.category.text = currentItem.type
+        holder.completeDate.text = currentItem.timeEnd
+
     }
 
     override fun getItemCount(): Int {
@@ -46,6 +50,8 @@ class CompletedTasksAdapter(private val tasks: ArrayList<Task>) : RecyclerView.A
         // Each MyViewHolder object keeps a reference to 3 view items in our row_item.xml file
         val activityName = itemView.tv_name
         val imagename = itemView.image_profile
+        val category = itemView.tv_category
+        val completeDate = itemView.tv_date
 
         // Set onClickListener to show a toast message for the selected row item in the list
         init {
