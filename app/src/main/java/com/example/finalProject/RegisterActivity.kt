@@ -33,15 +33,10 @@ class RegisterActivity : AppCompatActivity() {
 
 
     fun loginButton(view: View) {
-
-
         // Choose authentication providers -- make sure enable them on your firebase account first
         val providers = arrayListOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
             AuthUI.IdpConfig.GoogleBuilder().build()
-            //AuthUI.IdpConfig.PhoneBuilder().build(),
-            //AuthUI.IdpConfig.FacebookBuilder().build(),
-            //AuthUI.IdpConfig.TwitterBuilder().build()
         )
 
         // Create  sign-in intent
@@ -49,7 +44,7 @@ class RegisterActivity : AppCompatActivity() {
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
             .setTosAndPrivacyPolicyUrls("https://example.com", "https://example.com")
-            .setLogo(R.drawable.ic_contacts_black_24dp)
+            .setLogo(R.drawable.login_image)
             .setAlwaysShowSignInMethodScreen(true) // use this if you have only one provider and really want the see the signin page
             .setIsSmartLockEnabled(false)
             .build()

@@ -33,6 +33,7 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.koushikdutta.ion.Ion
 import dmax.dialog.SpotsDialog
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_webview.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.content_main.completeTaskBtn
 import kotlinx.android.synthetic.main.content_main.categorySpinner
@@ -349,7 +350,14 @@ class MainActivity : AppCompatActivity() {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+
         return when(item.itemId) {
+            //Goes to webView when clicked on the search icon
+            R.id.help-> {
+                val intent = Intent(this, webviewActivity::class.java)
+                startActivity(intent)
+                true
+            }
             R.id.action_logout -> {
                 // User chose the "logout" item, logout the user then
                 Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();
@@ -372,6 +380,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
     //Upload image to the firebase storage
     private fun uploadImage() {
         if (filePath != null)

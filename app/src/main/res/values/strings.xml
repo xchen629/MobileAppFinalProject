@@ -1,8 +1,14 @@
 <resources>
-    <string name="app_name">Firebase Example</string>
-    <string name="add_record">Add a Record</string>
-    <string name="view_records">View All Records</string>
-    <string name="update_record">Update By ID</string>
-    <string name="delete_record">Delete By ID</string>
+    <string name="app_name">Welcome！</string>
     <string name="random_task">Random Task</string>
+    <string name="title_activity_web_view">webView</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="help" />
 </resources>
