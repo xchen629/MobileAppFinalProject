@@ -59,15 +59,18 @@
         android:layout_height="114dp"
         android:layout_marginTop="32dp"
         android:cursorVisible="false"
+        android:drawableRight="@drawable/ic_dialog_close_light"
         android:ems="10"
         android:gravity="start|top"
         android:hint="Enter a description about your completed tasks here (optional)"
         android:inputType="textMultiLine"
         android:textAlignment="center"
+        app:endIconMode="clear_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.491"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/time_tv" />
+        app:layout_constraintTop_toBottomOf="@+id/time_tv"
+        tools:ignore="RtlCompat" />
 
     <TextView
         android:id="@+id/time_tv"
