@@ -15,12 +15,16 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.firebase.ui.auth.AuthUI
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -87,6 +91,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         // #### Authentication using FirebaseAuth #####
         // If currentUser is null, open the RegisterActivity
+        addRightCancelDrawable(findViewById(R.id.description_tv))
+        val username = findViewById<EditText>(R.id.description_tv)
+        username.onRightDrawableClicked {
+            it.text.clear()
+        }
+
+
+
         if (FirebaseAuth.getInstance().currentUser == null){
             startRegisterActivity()
         }
@@ -138,8 +150,27 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG,FirebaseAuth.getInstance().currentUser!!.uid)//gets user id
         }
     }
+    private fun addRightCancelDrawable(editText: EditText) {
+        val cancel = ContextCompat.getDrawable(this, R.drawable.ic_dialog_close_light)
+        cancel?.setBounds(0,0, cancel.intrinsicWidth, cancel.intrinsicHeight)
+        description_tv.text.clear()
+    }
 
-
+    @SuppressLint("ClickableViewAccessibility")
+    fun EditText.onRightDrawableClicked(onClicked: (view: EditText) -> Unit) {
+        this.setOnTouchListener { v, event ->
+            var hasConsumed = false
+            if (v is EditText) {
+                if (event.x >= v.width - v.totalPaddingRight) {
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        onClicked(this)
+                    }
+                    hasConsumed = true
+                }
+            }
+            hasConsumed
+        }
+    }
     @SuppressLint("NewApi")
     fun displayElapsedTime(){
         val currentTimeMs = System.currentTimeMillis()
@@ -490,20 +521,22 @@ class MainActivity : AppCompatActivity() {
     private fun showImageDialog() {
         // Create an alertdialog builder object,
         // then set attributes that you want the dialog to have
+
+
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
         builder.setTitle("What would you like to do?")
         builder.setMessage("Choose an option below to complete with the task!")
 
         // Open the camera if user choose this option
-        builder.setPositiveButton("Picture from Camera"){ dialog, which ->
+        builder.setPositiveButton("Picture from Camera") { dialog, which ->
             openCamera()
         }
         //Open up the gallery if user choose this option
-        builder.setNegativeButton("Upload from gallery"){dialog, which ->
+        builder.setNegativeButton("Upload from gallery") { dialog, which ->
             chooseImage()
         }
         //Play the sound if user choose this button
-        builder.setNeutralButton("Random Cat Picture"){dialog, which ->
+        builder.setNeutralButton("Random Cat Picture") { dialog, which ->
             //set default pic here
             downloadCatImage()
 
@@ -512,6 +545,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = builder.create()
         dialog.show()
     }
+
 
     fun downloadCatImage() {
         // Download the data from the specified URL
