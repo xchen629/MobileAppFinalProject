@@ -71,5 +71,6 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.2.2'
     implementation 'androidx.navigation:navigation-ui-ktx:2.2.2'
     implementation 'androidx.mediarouter:mediarouter:1.1.0'
+    implementation 'com.android.support:design:28.0.0'
 
 }
