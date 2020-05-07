@@ -1,8 +1,10 @@
 package com.example.finalProject
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -18,11 +20,18 @@ class CompletedTaskActivity : AppCompatActivity() {
     // specify a viewAdapter for the dataset
     val adapter = CompletedTasksAdapter(taskList)
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_completed_task)
         fireBaseDb = FirebaseFirestore.getInstance()
         loadCompletedTasksData()
+
+        val goToTask = findViewById<Button>(R.id.taskList)
+        goToTask.setOnClickListener{
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     //this function loads all of the active tasks for the logged in user

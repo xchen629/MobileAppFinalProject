@@ -22,13 +22,25 @@
 
     <TextView
         android:id="@+id/compledTasks_tv"
-        android:layout_width="355dp"
-        android:layout_height="68dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="322dp"
+        android:layout_height="66dp"
+        android:layout_marginTop="28dp"
         android:text="These are your completed tasks, tap to view description or hold down on the task if you want to delete it"
         android:textAlignment="center"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.053"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/taskList"
+        android:layout_width="81dp"
+        android:layout_height="49dp"
+        android:layout_marginTop="36dp"
+        android:text="Task"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.333"
+        app:layout_constraintStart_toEndOf="@+id/compledTasks_tv"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

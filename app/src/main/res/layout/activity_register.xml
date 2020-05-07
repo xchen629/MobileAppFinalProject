@@ -4,14 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background"
     tools:context=".RegisterActivity">
 
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="156dp"
-        android:layout_height="156dp"
-        android:src="@drawable/ic_contacts_black_24dp"
+        android:layout_width="327dp"
+        android:layout_height="136dp"
+        android:src="@drawable/login_image"
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -20,25 +21,25 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Contact App"
+        android:layout_width="264dp"
+        android:layout_height="89dp"
+        android:text="Task App"
         android:textAppearance="@style/TextAppearance.AppCompat.Display2"
+        android:textSize="60sp"
         app:layout_constraintBottom_toTopOf="@+id/imageView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/button"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="255dp"
+        android:layout_height="62dp"
         android:onClick="loginButton"
         android:text="Login/Register"
-        android:textColor="#FF8A80"
-        android:textSize="20dp"
+        android:textColor="#BC2B2B"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

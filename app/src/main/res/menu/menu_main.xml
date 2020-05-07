@@ -4,9 +4,15 @@
     tools:context="com.example.helloworld.MainActivity" >
 
     <item
+        android:id="@+id/help"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:orderInCategory="106"
+        android:title="@string/help"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_logout"
         android:icon="@drawable/ic_exit_to_app_black_24dp"
-        android:orderInCategory="100"
+        android:orderInCategory="107"
         android:title="Logout"
         app:showAsAction="ifRoom" />
 
