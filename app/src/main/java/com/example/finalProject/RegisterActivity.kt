@@ -44,7 +44,7 @@ class RegisterActivity : AppCompatActivity() {
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
             .setTosAndPrivacyPolicyUrls("https://example.com", "https://example.com")
-            .setLogo(R.drawable.login_image)
+            .setLogo(R.drawable.logo)
             .setAlwaysShowSignInMethodScreen(true) // use this if you have only one provider and really want the see the signin page
             .setIsSmartLockEnabled(false)
             .build()
