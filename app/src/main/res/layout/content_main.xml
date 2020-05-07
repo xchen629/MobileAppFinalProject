@@ -10,51 +10,16 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <TextView
-        android:id="@+id/taskTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="These are your current tasks, hold down on an item to delete or complete a task!"
-        android:textAlignment="center"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/typeTaskBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
-        android:onClick="addTask"
-        android:text="Get task:"
-        app:layout_constraintBottom_toTopOf="@+id/task_tv"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/taskTitle"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <Spinner
-        android:id="@+id/categorySpinner"
-        android:layout_width="167dp"
-        android:layout_height="48dp"
-        android:entries="@array/spinnerItems"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/typeTaskBtn"
-        app:layout_constraintTop_toBottomOf="@+id/taskTitle" />
-
     <Button
         android:id="@+id/completedTask_Btn"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="148dp"
         android:onClick="launchCompletedTaskActivity"
         android:text="View Completed Tasks"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.755"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
         app:layout_constraintTop_toBottomOf="@+id/image_view"
         app:layout_constraintVertical_bias="0.0" />
 
@@ -78,33 +43,22 @@
 
     <Button
         android:id="@+id/completeTaskBtn"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="148dp"
         android:text="Complete Task"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/completedTask_Btn"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/image_view"
         app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
-        android:id="@+id/task_tv"
-        android:layout_width="352dp"
-        android:layout_height="78dp"
-        android:text="Press button to get a task"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.542"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/categorySpinner" />
 
     <EditText
         android:id="@+id/description_tv"
         android:layout_width="350dp"
         android:layout_height="114dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="32dp"
+        android:cursorVisible="false"
         android:drawableRight="@drawable/ic_dialog_close_light"
         android:ems="10"
         android:gravity="start|top"
@@ -127,5 +81,66 @@
         app:layout_constraintHorizontal_bias="0.533"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/task_tv" />
+
+    <Button
+        android:id="@+id/submit_task"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:onClick="launchWebViewActivity"
+        android:text="Tap to contribute new task ideas"
+        android:textColor="#3F51B5"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/task_tv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/categorySpinner"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.17" />
+
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="154dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="16dp"
+        android:entries="@array/spinnerItems"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/typeTaskBtn"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/typeTaskBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:onClick="addTask"
+        android:text="Get task:"
+        app:layout_constraintBottom_toTopOf="@+id/task_tv"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.148" />
+
+    <TextView
+        android:id="@+id/task_tv"
+        android:layout_width="352dp"
+        android:layout_height="78dp"
+        android:layout_marginTop="40dp"
+        android:text="Press button to get a task"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.508"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/categorySpinner" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="181dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

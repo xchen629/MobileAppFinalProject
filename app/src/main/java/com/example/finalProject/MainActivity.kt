@@ -56,18 +56,15 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    var currentTask = Task("","",0,null,"","","","",0)
-    var emptyTask = Task("","",0,null,"","","","",0)
+    var currentTask = Task("","",0,null,"","","","","",0,"")
+    var emptyTask = Task("","",0,null,"","","","","",0,"")
     private lateinit var fireBaseDb: FirebaseFirestore
     private val CAMERA_REQUEST = 1000
     private val PERMISSION_PICK_IMAGE = 1001
     internal var filePath: Uri? = null
-
-
     var imageID: String? = null
     //Dialog
     lateinit var dialog: AlertDialog
-
     //Firebase
     lateinit var storage: FirebaseStorage
     lateinit var storageReference: StorageReference
@@ -84,7 +81,6 @@ class MainActivity : AppCompatActivity() {
 
     //Cat pic api
     private val CAT_URL = "https://api.thecatapi.com/v1/images/search?mime_types=jpg,png"
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,6 +152,16 @@ class MainActivity : AppCompatActivity() {
         description_tv.text.clear()
     }
 
+
+    fun launchWebViewActivity(view: View){
+        // Launch the second activity
+        val intent = Intent(this, webviewActivity::class.java)
+        intent.putExtra("url","https://www.boredapi.com/contributing")
+        Log.d(TAG, "Launching the web activity")
+        startActivity(intent)
+    }
+
+
     @SuppressLint("ClickableViewAccessibility")
     fun EditText.onRightDrawableClicked(onClicked: (view: EditText) -> Unit) {
         this.setOnTouchListener { v, event ->
@@ -171,6 +177,7 @@ class MainActivity : AppCompatActivity() {
             hasConsumed
         }
     }
+
     @SuppressLint("NewApi")
     fun displayElapsedTime(){
         val currentTimeMs = System.currentTimeMillis()
@@ -210,19 +217,11 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onResponse: ${response.body()?.activity}")
                     val body = response.body()
 
-
                     if (body == null){
                         Log.w(TAG, "Valid response was not received")
                         return
                     }
-
-                    task_tv.text = body.activity
-                    currentTask = body
-                    currentTask.timeStart = System.currentTimeMillis().toString()
-                    currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
-                    addTaskToDatabase(currentTask)
-                    description_tv.text.clear()
-                    image_view.setImageResource(R.drawable.add_image)
+                    setupCurrentTask(body)
                 }
             })
         }
@@ -242,17 +241,21 @@ class MainActivity : AppCompatActivity() {
                         Log.w(TAG, "Valid response was not received")
                         return
                     }
-
-                    task_tv.text = body.activity
-                    currentTask = body
-                    currentTask.timeStart = System.currentTimeMillis().toString()
-                    currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
-                    addTaskToDatabase(currentTask)
-                    description_tv.text.clear()
-                    image_view.setImageResource(R.drawable.add_image)
+                    setupCurrentTask(body)
                 }
             })
         }
+    }
+
+    fun setupCurrentTask(body: Task){
+        task_tv.text = body.activity
+        currentTask = body
+        currentTask.timeStart = System.currentTimeMillis().toString()
+        currentTask.uid = FirebaseAuth.getInstance().currentUser!!.uid
+        currentTask.name = FirebaseAuth.getInstance().currentUser!!.displayName
+        addTaskToDatabase(currentTask)
+        description_tv.text.clear()
+        image_view.setImageResource(R.drawable.add_image)
     }
 
     fun deleteTask() {
@@ -292,8 +295,10 @@ class MainActivity : AppCompatActivity() {
             FirebaseAuth.getInstance().currentUser!!.uid,
             description_tv.text.toString(),
             task.timeStart,
+            System.currentTimeMillis().toString(),
             formatted,
-            task.public
+            task.public,
+            task.name
         )
         // Get an auto generated id for a document that you want to insert
         val id = savedCTasks.document().id
@@ -348,7 +353,9 @@ class MainActivity : AppCompatActivity() {
                             document.get("description").toString(),
                             document.get("timeStart").toString(),
                             document.get("timeEnd").toString(),
-                            document.get("public").toString().toInt()
+                            document.get("dateEnd").toString(),
+                            document.get("public").toString().toInt(),
+                            document.get("name").toString()
                         )
                         task_tv.text = newTask.activity
                         currentTask = newTask
@@ -386,6 +393,7 @@ class MainActivity : AppCompatActivity() {
             //Goes to webView when clicked on the search icon
             R.id.help-> {
                 val intent = Intent(this, webviewActivity::class.java)
+                intent.putExtra("url","https://www.google.com/")
                 startActivity(intent)
                 true
             }
@@ -624,5 +632,6 @@ class MainActivity : AppCompatActivity() {
             saveCompletedTask(currentTask, Uri.parse(currentTask.image)) //cat pic
         }
         playSound()
+        time_tv.text = "Elapsed Time: 00:00:00:00" //reset elapsed time
     }
 }
