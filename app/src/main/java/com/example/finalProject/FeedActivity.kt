@@ -1,51 +1,53 @@
 package com.example.finalProject
 
 import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_completed_task.*
+import kotlinx.android.synthetic.main.activity_feed.*
 
-class CompletedTaskActivity : AppCompatActivity() {
-
-    private val TAG = "CompletedTasksActivity"
+class FeedActivity : AppCompatActivity() {
+    private val TAG = "FeedActivity"
     private lateinit var fireBaseDb: FirebaseFirestore
 
     // Define an array to store a list of users
-    private val taskList = ArrayList<Task>()
+    private var taskList = ArrayList<Task>()
     // specify a viewAdapter for the dataset
-    val adapter = CompletedTasksAdapter(taskList)
-
+    val adapter = FeedAdapter(taskList)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_completed_task)
+        setContentView(R.layout.activity_feed)
         fireBaseDb = FirebaseFirestore.getInstance()
-        loadCompletedTasksData()
+        loadPublicTasksData()
 
-        val goToTask = findViewById<Button>(R.id.returnToTasks)
-        goToTask.setOnClickListener{
-            finish()
+        // Setup refresh listener which triggers new data loading
+        swipe_refresh_layout.setOnRefreshListener {
+            // Update the adapter with new data.
+            loadPublicTasksData()
+
+            // hide the refreshing animation
+            swipe_refresh_layout.isRefreshing = false
         }
 
-        val goToFeed = findViewById<Button>(R.id.goToFeed)
-        goToFeed.setOnClickListener{
-            val intent = Intent(this, FeedActivity::class.java)
-            startActivity(intent)
-        }
+        // set a different color for the refreshing animation -- Optional
+        swipe_refresh_layout.setColorSchemeColors(Color.BLUE)
 
 
     }
 
     //this function loads all of the active tasks for the logged in user
-    fun loadCompletedTasksData() {
-        completedTasks_rv.adapter = adapter
-        completedTasks_rv.layoutManager = LinearLayoutManager(this)
+    fun loadPublicTasksData(){
+        taskList.clear() //make sure taskList is empty
+        feed_rv.adapter = adapter
+        feed_rv.layoutManager = LinearLayoutManager(this)
 
         // Get data using addOnSuccessListener
         fireBaseDb.collection("CompletedTasks")
@@ -54,7 +56,7 @@ class CompletedTaskActivity : AppCompatActivity() {
             .addOnSuccessListener { documents ->
                 // The result (documents) contains all the records in db, each of them is a document
                 for (document in documents) {
-                    if(FirebaseAuth.getInstance().currentUser!!.uid == document.get("uid").toString()) //check if logged in user id matches the uid of task
+                    if(document.get("public").toString() == "1") //check if logged in user id matches the uid of task
                     {
                         val newTask = Task(
                             document.get("activity").toString(),
@@ -80,3 +82,5 @@ class CompletedTaskActivity : AppCompatActivity() {
             }
     }
 }
+
+

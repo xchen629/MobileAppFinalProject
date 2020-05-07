@@ -8,39 +8,60 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/completedTasks_rv"
-        android:layout_width="406dp"
-        android:layout_height="556dp"
+        android:layout_width="415dp"
+        android:layout_height="506dp"
         android:layout_marginStart="1dp"
         android:layout_marginEnd="1dp"
         android:layout_marginBottom="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.666"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/compledTasks_tv"
-        app:layout_constraintVertical_bias="0.051"
+        app:layout_constraintVertical_bias="0.087"
         tools:listitem="@layout/row_item" />
 
     <TextView
         android:id="@+id/compledTasks_tv"
-        android:layout_width="322dp"
-        android:layout_height="66dp"
-        android:layout_marginTop="28dp"
-        android:text="These are your completed tasks, tap to view description or hold down on the task if you want to delete it"
+        android:layout_width="376dp"
+        android:layout_height="51dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:text="Tap to view description or hold down on the task if you want to delete it"
         android:textAlignment="center"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.053"
+        app:layout_constraintHorizontal_bias="0.578"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/taskList"
-        android:layout_width="81dp"
+        android:id="@+id/returnToTasks"
+        android:layout_width="0dp"
         android:layout_height="49dp"
-        android:layout_marginTop="36dp"
-        android:text="Task"
+        android:text="Return "
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/completedTasks_rv"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/goToFeed"
+        android:layout_width="0dp"
+        android:layout_height="49dp"
+        android:text="View Feed"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.333"
-        app:layout_constraintStart_toEndOf="@+id/compledTasks_tv"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/returnToTasks"
+        app:layout_constraintTop_toBottomOf="@+id/completedTasks_rv"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="202dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

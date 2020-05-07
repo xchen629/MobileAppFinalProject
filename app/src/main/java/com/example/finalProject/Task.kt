@@ -18,7 +18,9 @@ data class Task(
     var description: String,
     var timeStart: String,
     var timeEnd: String,
-    var public: Int
+    var dateEnd:String,
+    var public: Int,
+    var name: String?
 )
 
 
