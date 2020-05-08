@@ -19,3 +19,7 @@ Instructions:
 10.User can view public feed to see tasks that other users have completed, and swipe down to refresh the list
 11.Users can also contribute tasks by visiting https://www.boredapi.com/contributing
   
+  
+Tested on Pixel 3 API 27
+https://github.com/xchen629/MobileAppFinalProject
+
