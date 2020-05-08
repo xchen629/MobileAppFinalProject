@@ -16,7 +16,7 @@ Instructions:
 7. Click on image to add picture after complete the task.
 8. "Magnifying glass" goes to a webview for searching for help
 9. Two buttons "Complete task" - saves the task to the completed task list(Can choose to be added to public feed or not)
-	       "View Completed Tasks" - view the collection of all the tasks they have completed.      
+	       "View Completed Tasks" - view the collection of all the tasks they have completed.
 10.User can view public feed to see tasks that other users have completed, and swipe down to refresh the list
 11.Users can also contribute tasks by visiting https://www.boredapi.com/contributing
   
