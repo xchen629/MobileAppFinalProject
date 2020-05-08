@@ -11,7 +11,7 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
     defaultConfig {
-        applicationId "com.example.finalProject"
+        applicationId "com.taskApp.finalProject"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1

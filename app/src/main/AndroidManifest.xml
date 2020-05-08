@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.finalProject">
+    package="com.taskApp.finalProject">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,29 +17,29 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".FeedActivity"
+        <activity android:name="com.taskApp.finalProject.FeedActivity"
             android:label="Public Feed"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
-        <activity android:name=".CompletedTaskActivity"
+        <activity android:name="com.taskApp.finalProject.CompletedTaskActivity"
             android:label="My Completed Tasks"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
-            android:name=".webviewActivity"
+            android:name="com.taskApp.finalProject.webviewActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
-            android:name=".RegisterActivity"
+            android:name="com.taskApp.finalProject.RegisterActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.taskApp.finalProject.MainActivity"
             android:label="The Task App"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait"
