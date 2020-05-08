@@ -12,4 +12,12 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="help" />
     <string name="title" />
+    <string name="view_completed_tasks">View Completed Tasks</string>
+    <string name="complete_task">Complete Task</string>
+    <string name="elapsed_time">Elapsed Time:</string>
+    <string name="tap_to_contribute_new_task_ideas">Tap to contribute new task ideas</string>
+    <string name="get_task">Get task:</string>
+    <string name="press_button_to_get_a_task">Press button to get a task</string>
+    <string name="enter_a_description_about_your_completed_tasks_here_optional">Enter a description about your completed tasks here (optional)</string>
+    <string name="todo">TODO</string>
 </resources>
